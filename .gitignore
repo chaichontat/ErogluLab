@@ -1,1 +1,5 @@
 *.h5
+*.eroglulab-X11DAi-N
+config.json
+events.out*
+*.tif
