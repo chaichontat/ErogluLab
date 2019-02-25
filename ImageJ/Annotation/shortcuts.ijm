@@ -23,20 +23,32 @@ macro "Label [S]" {
 	roiManager("Show All with labels");
 }
 
-macro "Save ROI [p]" {
-	setBatchMode(true);
-	counts = roiManager("count");
-	for (j = 0; j < counts; j++){ 
-	    roiManager("Select", j);
-	    roiManager("Rename", "cell");
-	    roiManager("Remove Channel Info");
-		roiManager("Remove Slice Info");
-		roiManager("Remove Frame Info");
+macro "Init [i]" {
+	if (getBoolean("Init? Will clear ROI Manager.")) {
+		if (roiManager("count") != 0) {
+			roiManager("deselect");
+			roiManager("delete");
+		}
+		run("To ROI Manager");	
 	}
-	run("From ROI Manager");
-	
-	path =  getInfo("image.directory"); 
-	call("ij.io.OpenDialog.setDefaultDirectory", path); 
-	run("Tiff...");
-	setBatchMode(false);
+}
+
+macro "Save ROI [p]" {
+	if (getBoolean("Save? Will clear overlay.")) {
+		setBatchMode(true);
+		counts = roiManager("count");
+		for (j = 0; j < counts; j++){ 
+		    roiManager("Select", j);
+		    roiManager("Rename", "cell");
+		    roiManager("Remove Channel Info");
+			roiManager("Remove Slice Info");
+			roiManager("Remove Frame Info");
+		}
+		run("From ROI Manager");
+		
+		path =  getInfo("image.directory"); 
+		call("ij.io.OpenDialog.setDefaultDirectory", path); 
+		run("Tiff...");
+		setBatchMode(false);
+	}
 }
