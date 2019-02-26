@@ -1,5 +1,6 @@
 macro "Smart Rotate [r]" {
 	setTool("line");
+	waitForUser("Hold", "Drag Line and Click OK");
 	getSelectionCoordinates(x, y);
 	slope = -(y[1] - y[0])/ (x[1] - x[0]);
 	angle = atan2(-(y[1] - y[0]), (x[1] - x[0])) * 180 / PI;
