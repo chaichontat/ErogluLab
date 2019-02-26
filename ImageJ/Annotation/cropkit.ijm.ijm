@@ -6,7 +6,10 @@ macro "Smart Rotate [r]" {
 	angle = atan2(-(y[1] - y[0]), (x[1] - x[0]));
 
 	// For some reason, enlarge doesn't work. Fall back to manual linear algebra.
-	aangle = abs(angle);
+	aangle = angle;
+	if (aangle < 0) {
+		aangle += PI;
+	}
 	if (aangle > PI / 2) {
 		aangle -= PI / 2;
 	}
@@ -17,17 +20,17 @@ macro "Smart Rotate [r]" {
 	newheight = abs(x_ori * sin(aangle) + y_ori * cos(aangle)) * 2;
 	// Lower right corner
 	newwidth  = abs(x_ori * cos(aangle) + y_ori * sin(aangle)) * 2;
-	
+	/*
 	if (newwidth < width) {
-		newwidth = width;
+		newwidth = height;
 	}
 
 	if (newheight < height) {
 		newheight = height;
-	}
+	}*/
 	
 	run("Canvas Size...", "width=" + newwidth + " height=" + newheight + " position=Center zero");
-	run("Rotate... ", "angle=" + angle * 180 / PI + " grid=1 interpolation=Bilinear stack");
+	run("Rotate... ", "angle=" + aangle * 180 / PI + " grid=1 interpolation=Bilinear stack");
 	setTool("rectangle");
 }
 
