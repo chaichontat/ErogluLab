@@ -4,7 +4,7 @@ macro "Smart Rotate [r]" {
 	getSelectionCoordinates(x, y);
 	slope = -(y[1] - y[0])/ (x[1] - x[0]);
 	angle = atan2(-(y[1] - y[0]), (x[1] - x[0])) * 180 / PI;
-	run("Rotate... ", "angle=" + angle + " grid=1 interpolation=Bilinear stack");
+	run("Rotate... ", "angle=" + angle + " grid=1 interpolation=Bilinear enlarge stack");
 	setTool("rectangle");
 }
 
