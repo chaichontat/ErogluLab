@@ -7,13 +7,24 @@ macro "Smart Rotate [r]" {
 
 	// For some reason, enlarge doesn't work. Fall back to manual linear algebra.
 	aangle = abs(angle);
+	if (aangle > PI / 2) {
+		aangle -= PI / 2;
+	}
 	getDimensions(width, height, channels, slices, frames);
 	x_ori = width / 2;
 	y_ori = height / 2;
 	// Upper right corner
-	newheight = abs(x_ori * sin(angle) + y_ori * cos(angle)) * 2;
+	newheight = abs(x_ori * sin(aangle) + y_ori * cos(aangle)) * 2;
 	// Lower right corner
-	newwidth  = abs(x_ori * cos(angle) + y_ori * sin(angle)) * 2;
+	newwidth  = abs(x_ori * cos(aangle) + y_ori * sin(aangle)) * 2;
+	
+	if (newwidth < width) {
+		newwidth = width;
+	}
+
+	if (newheight < height) {
+		newheight = height;
+	}
 	
 	run("Canvas Size...", "width=" + newwidth + " height=" + newheight + " position=Center zero");
 	run("Rotate... ", "angle=" + angle * 180 / PI + " grid=1 interpolation=Bilinear stack");
