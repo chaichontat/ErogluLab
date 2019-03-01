@@ -5,6 +5,7 @@ name = substring(name, 3, lengthOf(name)-40);
 rename("mask"); // channel 2
 run("16-bit");
 selectImage(name);
+getDimensions(width, height, channels, slices, frames);
 rename("temp");
 run("Split Channels");
 arg = "";
@@ -13,3 +14,4 @@ for (i=1; i<=channels; i++) {
 }
 arg = arg + " c" + i + "=mask create";
 run("Merge Channels...", arg);
+rename(name);
