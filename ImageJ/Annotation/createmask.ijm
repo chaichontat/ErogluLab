@@ -24,10 +24,10 @@ for (i=0; i<list.length; i++) {
 	rename("temp");
 	run("Split Channels");
 	arg = "";
-	for (i=1; i<=channels; i++) {
-		arg = arg + " c" + i + "=" + "C" + i + "-temp";
+	for (j=1; j<=channels; j++) {
+		arg = arg + " c" + j + "=" + "C" + j + "-temp";
 	}
-	arg = arg + " c" + i + "=mask create";
+	arg = arg + " c" + j + "=mask create";
 	run("Merge Channels...", arg);
 	saveAs("tiff", dir + list[i]);
 	run("Close All");
