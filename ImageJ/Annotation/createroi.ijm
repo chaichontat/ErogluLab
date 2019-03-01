@@ -8,7 +8,6 @@ print(modeldef);
 
 dir = getDirectory("[Choose Source Directory]");
 list  = getFileList(dir);
-
 for (i=0; i<list.length; i++) {
 	open(dir + list[i]);
 	getDimensions(width, height, channels, slices, frames);
@@ -20,15 +19,17 @@ for (i=0; i<list.length; i++) {
 	run("Split Channels");
 	rename("mask"); // channel 2
 	run("16-bit");
+	
+	setAutoThreshold("Default dark");
+	run("Convert to Mask");
+	run("Watershed");
+	roiManager("Deselect");
+	run("Analyze Particles...", "size=50-Infinity display clear add");
+	close();
+	
+	
 	selectImage(name);
-	rename("temp");
-	run("Split Channels");
-	arg = "";
-	for (i=1; i<=channels; i++) {
-		arg = arg + " c" + i + "=" + "C" + i + "-temp";
-	}
-	arg = arg + " c" + i + "=mask create";
-	run("Merge Channels...", arg);
+	run("From ROI Manager");
 	saveAs("tiff", dir + list[i]);
 	run("Close All");
 }
