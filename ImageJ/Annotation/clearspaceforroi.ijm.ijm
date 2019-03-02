@@ -9,6 +9,7 @@ for (i=0; i<list.length; i++) {
 	run("Make Inverse");
 	
 	for (j=1; j<=channels; j++) {
+		setSlice(j);
 		run("Clear", "slice");
 	}
 	saveAs("tiff", dir + list[i]);

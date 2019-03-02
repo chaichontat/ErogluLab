@@ -6,11 +6,11 @@ getDimensions(width, height, channels, slices, frames);
 rename("temp");
 run("Split Channels");
 
-setAutoThreshold("Default dark");
+setAutoThreshold("Li dark");
 run("Convert to Mask");
 run("Watershed");
 roiManager("Deselect");
-run("Analyze Particles...", "size=150-Infinity display clear add");
+run("Analyze Particles...", "size=50-Infinity display clear add");
 close();
 
 arg = "";
