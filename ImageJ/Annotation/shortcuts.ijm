@@ -23,6 +23,11 @@ macro "Label [S]" {
 	roiManager("Show All with labels");
 }
 
+macro "Enhance [r]" {
+	run("mpl-inferno");
+	run("Enhance Contrast...", "saturated=0.3");
+}
+
 macro "Init [i]" {
 	if (getBoolean("Init? Will clear ROI Manager.")) {
 		if (roiManager("count") != 0) {
@@ -50,5 +55,32 @@ macro "Save ROI [p]" {
 		call("ij.io.OpenDialog.setDefaultDirectory", path); 
 		run("Tiff...");
 		setBatchMode(false);
+	}
+}
+
+macro "From mask [m]" {
+	if (getBoolean("Get ROI from last channel?")) {
+		name = getTitle();
+		getDimensions(width, height, channels, slices, frames);
+		
+		rename("temp");
+		run("Split Channels");
+		
+		setAutoThreshold("Li dark");
+		run("Convert to Mask");
+		run("Watershed");
+		roiManager("Deselect");
+		run("Analyze Particles...", "size=50-Infinity display clear add");
+		close();
+		
+		arg = "";
+		for (i=1; i<=channels - 1; i++) {
+			arg = arg + " c" + i + "=" + "C" + i + "-temp";
+		}
+		
+		arg = arg + " create";
+		run("Merge Channels...", arg);
+		rename(name);
+		roiManager("Show All");
 	}
 }
