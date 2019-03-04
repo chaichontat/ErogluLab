@@ -4,13 +4,20 @@ name = getTitle();
 getDimensions(width, height, channels, slices, frames);
 
 rename("temp");
-run("Split Channels");
+Stack.setDisplayMode("color");
+Stack.setChannel(3);
+run("Make Inverse");
 
 setAutoThreshold("Li dark");
+getThreshold(lower, upper);
+
+run("Split Channels");
+setThreshold(lower, upper);
 run("Convert to Mask");
 run("Watershed");
 roiManager("Deselect");
 run("Analyze Particles...", "size=50-Infinity display clear add");
+
 close();
 
 arg = "";

@@ -76,12 +76,13 @@ macro "Save ROI [p]" {
 macro "From mask [m]" {
 	if (getBoolean("Get ROI from last channel?")) {
 		name = getTitle();
-		setBatchMode(true);
+		//setBatchMode(true);
 		getDimensions(width, height, channels, slices, frames);
 		Stack.setDisplayMode("color");
 		Stack.setChannel(channels);
 
 		run("Duplicate...", " ");
+		run("Make Inverse");
 		setAutoThreshold("Li dark");
 		run("Convert to Mask");
 		run("Watershed");
