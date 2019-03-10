@@ -53,13 +53,14 @@ macro "Save ROI [p]" {
 		}
 		
 		path =  getInfo("image.directory"); 
-		arg = "";
-		for (i=1; i<=channels - 1; i++) {
-			arg = arg + " c" + i + "=" + "C" + i + "-temp";
-		}
-		
+	
 		rename("temp");
 		run("Split Channels");
+		
+		arg = "";
+		for (i=1; i<=channels; i++) {
+			arg = arg + " c" + i + "=" + "C" + i + "-temp";
+		}
 		arg = arg + " create";
 		run("Merge Channels...", arg);
 		rename(name);
