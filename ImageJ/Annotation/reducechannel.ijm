@@ -23,7 +23,11 @@ for (i=0; i<list.length; i++) {
 		open(dir + list[i]);
 		rename("temp");
 		run("Split Channels");
-		run("Merge Channels...", arg);
+		if (numchan > 1) {
+			run("Merge Channels...", arg);
+		} else {
+			selectWindow("C" + setchan + "-temp");
+		}
 		saveAs(dir + setname + "/" + setname + "_" + list[i]);
 		run("Close All");
 	}
