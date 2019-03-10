@@ -29,7 +29,7 @@ for (j = 0; j < listbig.length; j++) { // Iterate through each subfolder
 				
 				open(dir + list[i]);
 	//			run("Z Project...", "projection=[Max Intensity]");
-				run("Z Project...", "stop=9 projection=[Max Intensity]");
+	//			run("Z Project...", "stop=9 projection=[Max Intensity]");
 				saveAs(dirmax[currentstitch] + list[i]);
 				close();
 				close();

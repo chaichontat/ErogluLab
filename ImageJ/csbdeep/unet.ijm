@@ -20,6 +20,6 @@ for (i=0; i <list.length; i++) {
 	close(); // channel 1
 	close(); // normalized
 	run("From ROI Manager");
-	saveAs("tiff", dir + list[i]);
+	saveAs("tiff", dir + "Seg_" + list[i]);
 	close();
 }
