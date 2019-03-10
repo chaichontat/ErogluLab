@@ -29,6 +29,6 @@ for (i=0; i<list.length; i++) {
 	}
 	arg = arg + " c" + j + "=mask create";
 	run("Merge Channels...", arg);
-	saveAs("tiff", dir + list[i]);
+	saveAs("tiff", dir + "Seg_" + list[i]);
 	run("Close All");
 }
