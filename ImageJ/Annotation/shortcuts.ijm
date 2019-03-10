@@ -82,7 +82,7 @@ macro "From mask [m]" {
 		Stack.setChannel(channels);
 
 		run("Duplicate...", " ");
-		run("Make Inverse");
+//		run("Make Inverse");
 		setAutoThreshold("Li dark");
 		run("Convert to Mask");
 		run("Watershed");

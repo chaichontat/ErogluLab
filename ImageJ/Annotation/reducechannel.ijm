@@ -19,10 +19,12 @@ for (i=1; i<=numchan; i++) {
 arg = arg + " create";
 
 for (i=0; i<list.length; i++) {
-	open(dir + list[i]);
-	rename("temp");
-	run("Split Channels");
-	run("Merge Channels...", arg);
-	saveAs(dir + setname + "/" + setname + "_" + list[i]);
-	run("Close All");
+	if (endsWith(list[i], ".tif")) {
+		open(dir + list[i]);
+		rename("temp");
+		run("Split Channels");
+		run("Merge Channels...", arg);
+		saveAs(dir + setname + "/" + setname + "_" + list[i]);
+		run("Close All");
+	}
 }
