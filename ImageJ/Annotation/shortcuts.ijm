@@ -85,10 +85,12 @@ macro "From mask [m]" {
 		run("Duplicate...", " ");
 //		run("Make Inverse");
 		setAutoThreshold("Li dark");
+		run("Threshold...");
+		waitForUser("Adjust threshold and click OK");
 		run("Convert to Mask");
 		run("Watershed");
 		roiManager("Deselect");
-		run("Analyze Particles...", "size=50-Infinity display clear add");
+		run("Analyze Particles...", "size=200-Infinity display clear add");
 		close();
 
 		run("Remove Overlay");
