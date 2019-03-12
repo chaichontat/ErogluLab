@@ -42,7 +42,12 @@ macro "Init [i]" {
 
 macro "Save ROI [p]" {
 	if (getBoolean("Save? Will clear overlay.")) {
+		if (roiManager("count") == 0) {
+			exit("Stop. ROI Manager is empty.");
+		}
+		
 		setBatchMode(true);
+		run("Remove Overlay");
 		getDimensions(width, height, channels, slices, frames);
 		name = getTitle();
 		counts = roiManager("count");
@@ -54,23 +59,15 @@ macro "Save ROI [p]" {
 			roiManager("Remove Frame Info");
 		}
 		
+		lastmask = is_mask(channels);
 		path =  getInfo("image.directory"); 
 		rename("temp");
-		arg = "";
-		
-		for (i=1; i<channels; i++) {
-			arg = arg + " c" + i + "=" + "C" + i + "-temp";
-		}
-
-		if (is_mask(channels)) {
-			close("C" + channels + "-temp");
-		} else {
-			arg = arg + " c" + channels + "=" + "C" + channels + "-temp";
-		}
-
-		arg = arg + " create";
 		run("Split Channels");
-		run("Merge Channels...", arg);
+		run("Merge Channels...", gen_arg(channels,lastmask));
+		if (lastmask) {
+			close("C" + channels + "-temp");
+		}
+		
 		rename(name);
 		run("From ROI Manager");
 		
@@ -78,6 +75,27 @@ macro "Save ROI [p]" {
 		run("Tiff...");
 		close();
 		setBatchMode(false);
+	}
+
+	function is_mask(chan) {
+		Stack.setChannel(chan);
+		if (getPixel(0,0) == 251 && getPixel(1,0) == 148 && getPixel(0,1) == 249) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	function gen_arg(channels, lastmask) {
+		arg = "";
+		if (lastmask) {
+			channels--;
+		}
+		for (i=1; i<=channels; i++) {
+			arg = arg + " c" + i + "=" + "C" + i + "-temp";
+		}
+		arg = arg + " create";
+		return arg;
 	}
 }
 
@@ -103,13 +121,4 @@ macro "From mask [m]" {
 	setBatchMode(false);
 	roiManager("Show All");
 	Stack.setChannel(1);
-}
-
-function is_mask(chan) {
-	Stack.setChannel(chan);
-	if (getPixel(0,0) == 251 && getPixel(1,0) == 148 && getPixel(0,1) == 249) {
-		return true;
-	} else {
-		return false;
-	}
 }
