@@ -1,3 +1,4 @@
+// Annotation toolkit
 macro "Switch Color [c]" {
 	getDimensions(width, height, channels, slices, frames);
 	Stack.setDisplayMode("color");
@@ -24,14 +25,15 @@ macro "Label [S]" {
 	roiManager("Show All with labels");
 }
 
-macro "Enhance [r]" {
+macro "Enhance [e]" {
 	run("Select None");
 	run("mpl-inferno");
 	run("Enhance Contrast...", "saturated=0.3");
 }
 
-macro "Init [i]" {
-	if (getBoolean("Init? Will clear ROI Manager.")) {
+// UNet toolkit
+macro "Overlay to ROI [i]" {
+	if (getBoolean("Overlay to ROI? Will clear ROI Manager.")) {
 		if (roiManager("count") != 0) {
 			roiManager("deselect");
 			roiManager("delete");
@@ -40,7 +42,7 @@ macro "Init [i]" {
 	}
 }
 
-macro "Save ROI [p]" {
+macro "ROI to Overlay [p]" {
 	if (getBoolean("Save? Will clear overlay.")) {
 		if (roiManager("count") == 0) {
 			exit("Stop. ROI Manager is empty.");
@@ -99,7 +101,7 @@ macro "Save ROI [p]" {
 	}
 }
 
-macro "From mask [m]" {
+macro "Mask to ROI [m]" {
 	minsize = getNumber("Minimum cell area? ", 50);
 	name = getTitle();
 	setBatchMode(true);
@@ -121,4 +123,42 @@ macro "From mask [m]" {
 	setBatchMode(false);
 	roiManager("Show All");
 	Stack.setChannel(1);
+}
+
+
+// Rotation kit
+macro "Smart Rotate [r]" {
+	setTool("line");
+	waitForUser("Hold", "Drag Line and Click OK");
+	getSelectionCoordinates(x, y);
+	slope = -(y[1] - y[0])/ (x[1] - x[0]);
+	angle = atan2(-(y[1] - y[0]), (x[1] - x[0]));
+
+	// For some reason, enlarge doesn't work. Fall back to manual linear algebra.
+	aangle = angle;
+	if (aangle < 0) {
+		aangle += PI;
+	}
+	if (aangle > PI / 2) {
+		aangle -= PI / 2;
+	}
+	getDimensions(width, height, channels, slices, frames);
+	x_ori = width / 2;
+	y_ori = height / 2;
+	// Upper right corner
+	newheight = abs(x_ori * sin(aangle) + y_ori * cos(aangle)) * 2;
+	// Lower right corner
+	newwidth  = abs(x_ori * cos(aangle) + y_ori * sin(aangle)) * 2;
+	
+	run("Canvas Size...", "width=" + newwidth + " height=" + newheight + " position=Center zero");
+	run("Rotate... ", "angle=" + aangle * 180 / PI + " grid=1 interpolation=Bilinear stack");
+	setTool("rectangle");
+}
+
+macro "Horizontal Flip [h]" {
+	run("Flip Horizontally", "stack");
+}
+
+macro "Vertical Flip [v]" {
+	run("Flip Vertically", "stack");
 }

@@ -34,6 +34,14 @@ for (i=0; i<list.length; i++) {
 	}
 	arg = arg + " c" + j + "=mask create";
 	run("Merge Channels...", arg);
+	set_mask(channels+1);
 	saveAs("tiff", dir + "Seg_" + list[i]);
 	run("Close All");
+}
+
+function set_mask(chan) { // Mark that channel is a mask.
+	Stack.setChannel(chan);
+	setPixel(0,0,251);
+	setPixel(1,0,148);
+	setPixel(0,1,249);
 }

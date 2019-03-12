@@ -10,10 +10,10 @@ if (!(File.exists(resultfile))) {
 	File.close(f);
 }
 
-setBatchMode(true);
+//setBatchMode(true);
 
 for (z=0; z<list.length; z++) {
-	if (endsWith(list[z], ".tif")) {
+	if (endsWith(list[z], ".tif") && !startsWith(list[z], "Spots")) {
 		if (roiManager("count") != 0) {
 			roiManager("deselect");
 			roiManager("delete");
@@ -34,7 +34,7 @@ for (z=0; z<list.length; z++) {
 		run("Threshold...");
 		setBatchMode("show");
 		waitForUser("File: " + z+1 + "/" + lengthOf(list), "Green: adjust threshold and click OK");
-		setBatchMode("hide");
+		//setBatchMode("hide");
 		getThreshold(lowera, uppera);
 		run("Analyze Particles...", "size=" + minsize + "-Infinity pixel show=Nothing display");
 		numa = getValue("results.count");
@@ -58,7 +58,7 @@ for (z=0; z<list.length; z++) {
 		run("Threshold...");
 		setBatchMode("show");
 		waitForUser("File: " + z+1 + "/" + lengthOf(list), "Red: adjust threshold and click OK");
-		setBatchMode("hide");
+		// setBatchMode("hide");
 		getThreshold(lowerb, upperb);
 		run("Analyze Particles...", "size=" + minsize + "-Infinity pixel show=Nothing display");
 		numb = getValue("results.count");
@@ -66,29 +66,38 @@ for (z=0; z<list.length; z++) {
 		yb = newArray(numb);
 		rb = newArray(numb);
 		
+		start = getTime();
+		
 		for (i = 0; i < numb; i++) {
 			xb[i] = getResult("X", i);
 			yb[i] = getResult("Y", i);
 			rb[i] = sqrt(getResult("Area", i) / PI);
 		}
+		print("Radius: " + getTime() - start);
 		
 		close("Results");
 
-		xpuncta = newArray(0);
-		ypuncta = newArray(0);
+		xpuncta = newArray(100000);
+		ypuncta = newArray(100000);
 		numpuncta = 0;
-		//newImage("spots", "8-bit black", width, height, 1);
-		
+
+		print(numa);
+		print(numb);
+
 		for (i = 0; i < numa; i++) {
 			for (j = 0; j < numb; j++) {
 				if (punctaornot(xa[i], ya[i], ra[i], xb[j], yb[j], rb[j])) {
-					xpuncta = Array.concat(xpuncta, midpos(xa[i], xb[j]));
-					ypuncta = Array.concat(ypuncta, midpos(ya[i], yb[j]));
-					//setPixel(midpos(xa[i], xb[j]), midpos(ya[i], yb[j]), 255);
+					xpuncta[numpuncta] = midpos(xa[i], xb[j]);
+					ypuncta[numpuncta] = midpos(ya[i], yb[j]);
 					numpuncta++;
 				}
 			}
 		}
+
+		xpuncta = Array.trim(xpuncta, numpuncta);
+		ypuncta = Array.trim(ypuncta, numpuncta);
+
+		print("Dist: " + getTime() - start);
 
 		run("Merge Channels...", "c1=[temp (green)] c2=[temp (red)] create");
 		run("Select None");
@@ -97,7 +106,7 @@ for (z=0; z<list.length; z++) {
 		roiManager("Select", 0);
 		roiManager("Rename", "synapse");
 		run("From ROI Manager");
-		
+		print("ROI: " + getTime() - start);
 		saveAs("tiff", dir + "Spots_" + list[z]);
 		run("Close All");
 	
@@ -106,7 +115,7 @@ for (z=0; z<list.length; z++) {
 }
 
 function punctaornot(xa, ya, ra, xb, yb, rb) {
-	if ((xb-xa) < 20 && (yb-ya) < 20) {
+	if ((xb-xa) < 50 && (yb-ya) < 50) {
 		thr = ra + rb;
 		if (thr > sqrt(pow(yb - ya,2) + pow(xb - xa,2))) {
 			return true;

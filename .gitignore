@@ -3,3 +3,4 @@
 config.json
 events.out*
 *.tif
+.DS_Store
