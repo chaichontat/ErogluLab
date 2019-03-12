@@ -1,14 +1,15 @@
 macro "Switch Color [c]" {
-	Stack.getDisplayMode(displaymode);
-	if (displaymode == "color") {
-		Stack.setDisplayMode("composite");
-	}
+	getDimensions(width, height, channels, slices, frames);
+	Stack.setDisplayMode("color");
 	Stack.getActiveChannels(ch);
-	if (ch == "0100000") {
-		Stack.setActiveChannels("10");
+	print("old:" + ch);
+	current = lastIndexOf(ch,1) + 1;
+	if (current == channels) {
+		newchan = 1;
 	} else {
-		Stack.setActiveChannels("01");
+		newchan = current+1;
 	}
+	Stack.setChannel(newchan);
 }
 
 macro "No Show [a]" {
@@ -24,6 +25,7 @@ macro "Label [S]" {
 }
 
 macro "Enhance [r]" {
+	run("Select None");
 	run("mpl-inferno");
 	run("Enhance Contrast...", "saturated=0.3");
 }
@@ -53,18 +55,23 @@ macro "Save ROI [p]" {
 		}
 		
 		path =  getInfo("image.directory"); 
-	
 		rename("temp");
-		run("Split Channels");
-		
 		arg = "";
-		for (i=1; i<=channels; i++) {
+		
+		for (i=1; i<channels; i++) {
 			arg = arg + " c" + i + "=" + "C" + i + "-temp";
 		}
+
+		if (is_mask(channels)) {
+			close("C" + channels + "-temp");
+		} else {
+			arg = arg + " c" + channels + "=" + "C" + channels + "-temp";
+		}
+
 		arg = arg + " create";
+		run("Split Channels");
 		run("Merge Channels...", arg);
 		rename(name);
-		close("C" + channels + "-temp");
 		run("From ROI Manager");
 		
 		call("ij.io.OpenDialog.setDefaultDirectory", path); 
@@ -75,28 +82,34 @@ macro "Save ROI [p]" {
 }
 
 macro "From mask [m]" {
-	if (getBoolean("Get ROI from last channel?")) {
-		name = getTitle();
-		//setBatchMode(true);
-		getDimensions(width, height, channels, slices, frames);
-		Stack.setDisplayMode("color");
-		Stack.setChannel(channels);
+	minsize = getNumber("Minimum cell area? ", 50);
+	name = getTitle();
+	setBatchMode(true);
+	getDimensions(width, height, channels, slices, frames);
+	Stack.setDisplayMode("color");
+	Stack.setChannel(channels);
 
-		run("Duplicate...", " ");
-//		run("Make Inverse");
-		setAutoThreshold("Li dark");
-		run("Threshold...");
-		waitForUser("Adjust threshold and click OK");
-		run("Convert to Mask");
-		run("Watershed");
-		roiManager("Deselect");
-		run("Analyze Particles...", "size=200-Infinity display clear add");
-		close();
+	run("Duplicate...", " ");
+	setAutoThreshold("Li dark");
+	run("Threshold...");
+	waitForUser("Adjust threshold and click OK");
+	run("Convert to Mask");
+	run("Watershed");
+	roiManager("Deselect");
+	run("Analyze Particles...", "size=" + minsize + "-Infinity display clear add");
+	close();
 
-		run("Remove Overlay");
-		
-		setBatchMode(false);
-		roiManager("Show All");
-		Stack.setChannel(1);
+	run("Remove Overlay");
+	setBatchMode(false);
+	roiManager("Show All");
+	Stack.setChannel(1);
+}
+
+function is_mask(chan) {
+	Stack.setChannel(chan);
+	if (getPixel(0,0) == 251 && getPixel(1,0) == 148 && getPixel(0,1) == 249) {
+		return true;
+	} else {
+		return false;
 	}
 }

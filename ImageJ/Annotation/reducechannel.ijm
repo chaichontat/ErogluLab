@@ -1,3 +1,5 @@
+' Make a substack of channels with optional 2x scale.
+
 var setname;
 var setchan;
 var scale;

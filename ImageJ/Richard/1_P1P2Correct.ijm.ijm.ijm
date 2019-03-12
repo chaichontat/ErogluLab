@@ -85,7 +85,7 @@ function dialoggen() {
 	Dialog.addMessage("For individual, choose P1 then P2 folder.");
 	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
 	
-	Dialog.addRadioButtonGroup("Vignette Correction:", newArray("None", "Infer", "Flatfield"), 1, 3, "None");
+	Dialog.addRadioButtonGroup("Vignette Correction:", newArray("None", "Flatfield"), 1, 2, "None");
 	Dialog.addMessage("If flatfield vignette correction is selected, choose the flatfield directory after choosing P1/P2.");
 	Dialog.show();
 
@@ -105,8 +105,6 @@ function dialoggen() {
 
 	if (Dialog.getRadioButton() == "None") {
 		correction = "None";
-	} else if (Dialog.getRadioButton() == "Infer") {
-		correction = "infer";
 	} else {
 		correction = "flatfield";
 	}	
