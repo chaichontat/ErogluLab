@@ -1,10 +1,12 @@
 ' Iterate through each subfolder, max project and save into corresponding "stitch" folder
 var dir;
+var dirmax;
 var list;
 var lastfile;
 var maxproj;
 var zstart;
-var zend
+var zend;
+var currentstitch; // Number of groups - 1
 setBatchMode(true);
 
 dialoggen();
@@ -21,7 +23,7 @@ for (j = 0; j < listbig.length; j++) { // Iterate through each subfolder
 		dirmax = newArray(numstitch);
 		
 		for (i = 0; i < numstitch; i++) { // Temp folder for images
-			dirmax[i] = dir + "Max" + i + "/";
+			dirmax[i] = dir + "Max" + i+1 + "/";
 			File.makeDirectory(dirmax[i]);
 		}
 		
@@ -51,7 +53,7 @@ for (j = 0; j < listbig.length; j++) { // Iterate through each subfolder
 				
 				if (maxproj) {
 					if (zend > slices || zstart < 1) {
-						exit("Request Z projection impossible, not enough slices");
+						exit("Requested Z projection impossible, not enough slices");
 					}
 					run("Z Project...", "start=" + zstart + " stop=" + zend + " projection=[Max Intensity]");
 				} else {
@@ -61,7 +63,7 @@ for (j = 0; j < listbig.length; j++) { // Iterate through each subfolder
 				resetMinAndMax();
 				saveAs("tiff", dirbig + "Stitched_" + substring(list[lastfile],0,lengthOf(list[lastfile])-10) + i+1);
 				close();
-				delete(dirmax[i]);
+				deletedir(dirmax[i]);
 			}
 		}
 	}
@@ -94,13 +96,12 @@ function getLastFile() {
 }
 
 function checkTileConfig(dir) {
-	confdir = substring(dir, 0, lengthOf(dir)-10) + "/TileConfigs/";
-	print(confdir);
-	conflist = getFileList(confdir);
-	if (conflist.length > 0) {
+	confdir = substring(dir, 0, lengthOf(dir)-10) + "/";
+	conflast = "TileConfiguration" + currentstitch+1 + ".txt";
+	if (File.exists(confdir + conflast)) {
 		containsconf = true;
-		for (j=1; j<=conflist.length; j++) {
-				File.copy(confdir + "TileConfiguration" + j + ".prn", dir + "Max" + j-1 + "/TileConfiguration.txt");
+		for (j=1; j<=currentstitch+1; j++) {
+			File.copy(confdir + "TileConfiguration" + j + ".txt", dirmax[j-1] + "/TileConfiguration.txt");
 		}
 	} else {
 		containsconf = false;
@@ -108,10 +109,10 @@ function checkTileConfig(dir) {
 	return containsconf;
 }
 
-function delete(dirdel) {
+function deletedir(dirdel) {
 	listdel = getFileList(dirdel);
 	for (i = 0; i < listdel.length; i++) {
-		File.delete(dirdel + listdel);
+		x = File.delete(dirdel + listdel[i]);
 	}
-	File.delete(dirdel);
+	x = File.delete(dirdel);
 }

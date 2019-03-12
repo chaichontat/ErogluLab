@@ -46,16 +46,22 @@ if (batch == false) { // Individual
 		listp2 = newArray();
 		for (j = 0; j < listbig.length; j++) {
 			new = listbig[j];
-			if (endsWith(new, "/") || endsWith(new, "\\")) { // Check if directory
-				if (substring(new, lengthOf(new)-5, lengthOf(new)-1) == "P") { // Check for correct ending
-					// TODO
+			cycloc = indexOf(new, "P1_Cycle");
+			if ((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1 && !endsWith(new, "tiff/") && !endsWith(new, "restored/")) { // Check if directory and from Olympus
+				p2index = -1;
+				newp2 = substring(new,0,cycloc) + "P2_Cycle";
+				for (k=0; k<listbig.length; k++) {  // Check index of P2
+					if (indexOf(listbig[k], newp2) != -1) {
+						p2index = indexOf(listbig[k], newp2);
+					}
 				}
-				listp1 = Array.concat(listp1, new);
+				if (p2index != -1) {
+					listp1 = Array.concat(listp1, new);
+					listp2 = Array.concat(listp2, listbig[p2index]);
+				} else {
+					exit("Unequal P1 and P2 folder. Please recheck naming of " + new + ".");
+				}
 			}
-		}
-	
-		if (listp1.length != listp2.length) {
-			exit("Unequal P1 and P2 folder. Please recheck naming.");
 		}
 		
 		for (j = 0; j < listp1.length; j++) {
@@ -63,7 +69,7 @@ if (batch == false) { // Individual
 			dir2 = dirbig + listp2[j];
 			list1 = getFileList(dir1);
 			list2 = getFileList(dir2);
-			processFolder();
+			processfolder();
 		}
 	}
 }
@@ -108,7 +114,7 @@ function dialoggen() {
 
 function processfolder() {
 	foldername = File.getName(dir1);
-	dirtiff = dir1 + "../" + foldername +"_merged/";
+	dirtiff = dir1 + "../" + foldername +"_tiff/";
 	File.makeDirectory(dirtiff);
 	
 	for (i=0; i<list1.length; i++) {
@@ -117,12 +123,13 @@ function processfolder() {
 			
 			name = getTitle();
 			name = substring(name, 0, lengthOf(name)-4);
-
+			rename("temp");
+			
 			if (numchan > 1) {
 				run("Split Channels");
-				selectWindow("C1-" + name);
+				selectWindow("C1-temp");
 				rename("C1");
-				selectWindow("C2-" + name);
+				selectWindow("C2-temp");
 				rename("C2");
 			} else {
 				rename("C1");
@@ -130,12 +137,12 @@ function processfolder() {
 			
 			if (numchan > 2) {
 				run("Bio-Formats Importer", "open=[" + dir2 + list2[i] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
-				name2 = getTitle();
+				rename("temp");
 				if (numchan > 3) {
 					run("Split Channels");
-					selectWindow("C1-" + name2);
+					selectWindow("C1-temp");
 					rename("C3");
-					selectWindow("C2-" + name2);
+					selectWindow("C2-temp");
 					rename("C4");
 				} else {
 					rename("C3");
