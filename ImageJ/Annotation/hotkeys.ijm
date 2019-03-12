@@ -61,11 +61,17 @@ macro "ROI to Overlay [p]" {
 			roiManager("Remove Frame Info");
 		}
 		
-		lastmask = is_mask(channels);
+		if (channels == 1) {
+			lastmask == false;
+		} else {
+			lastmask = is_mask(channels);
+		}
+		
 		path =  getInfo("image.directory"); 
 		rename("temp");
 		run("Split Channels");
 		run("Merge Channels...", gen_arg(channels,lastmask));
+		
 		if (lastmask) {
 			close("C" + channels + "-temp");
 		}
