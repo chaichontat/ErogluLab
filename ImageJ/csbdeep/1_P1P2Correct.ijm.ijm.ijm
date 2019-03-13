@@ -47,17 +47,21 @@ if (!batch || train) { // Individual
 		for (j = 0; j < listbig.length; j++) {
 			new = listbig[j];
 			cycloc = indexOf(new, "P1_Cycle");
-			if ((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1 && !endsWith(new, "tiff/") && !endsWith(new, "restored/")) { // Check if directory and from Olympus
+			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && (!endsWith(new, "tiff/") && !endsWith(new, "restored/"))) { // Check if directory and from Olympus
 				p2index = -1;
 				newp2 = substring(new,0,cycloc) + "P2_Cycle";
-				for (k=0; k<listbig.length; k++) {  // Check index of P2
-					if (indexOf(listbig[k], newp2) != -1) {
-						p2index = indexOf(listbig[k], newp2);
-					}
+				print(newp2);
+				Array.print(listbig);
+				idx = -1;
+				while (p2index == -1) {
+					idx++;
+					p2index = indexOf(listbig[idx], newp2);
 				}
+
+				print(listbig[idx]);
 				if (p2index != -1) {
 					listp1 = Array.concat(listp1, new);
-					listp2 = Array.concat(listp2, listbig[p2index]);
+					listp2 = Array.concat(listp2, listbig[idx]);
 				} else {
 					exit("Unequal P1 and P2 folder. Please recheck naming of " + new + ".");
 				}
@@ -82,7 +86,7 @@ function dialoggen() {
 
 	Dialog.addNumber("Total number of channels:", 4);
 	
-	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Individual")
+	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
 	Dialog.addMessage("For individual, choose P1 then P2 folder.");
 	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
 	
@@ -151,7 +155,16 @@ function processfolder() {
 			}
 			
 			if (numchan > 2) {
-				run("Bio-Formats Importer", "open=[" + dir2 + list2[i] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
+				nameloc = indexOf(list1[i], "_A01_"); // Transform P1 to P2
+				p2name = substring(list1[i],0,nameloc-1) + "2" + substring(list1[i],nameloc,lengthOf(list1[i]));
+				p2loc = -1;
+				idx = -1;
+				while (p2loc == -1) {
+					idx++;
+					p2loc = indexOf(list2[idx], p2name);
+				}
+				
+				run("Bio-Formats Importer", "open=[" + dir2 + list2[idx] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 				rename("temp");
 				if (numchan > 3) {
 					run("Split Channels");
