@@ -16,7 +16,7 @@ var train;
 dialoggen();
 setBatchMode(true);
 
-if (batch == false) { // Individual
+if (!batch || train) { // Individual
 	dir1 = getDirectory("Choose P1");
 	list1 = getFileList(dir1);
 
@@ -32,7 +32,7 @@ if (batch == false) { // Individual
 	dirbig = getDirectory("Choose big directory");
 	listbig = getFileList(dirbig);
 	getdirflat();
-	if (numchan < 3) {
+	if (numchan < 3) { // One phase
 		for (j = 0; j < listbig.length; j++) {
 			new = listbig[j];
 			if (endsWith(new, "/") || endsWith(new, "\\")) { // Check if directory
@@ -74,11 +74,12 @@ if (batch == false) { // Individual
 	}
 }
 
-
 function dialoggen() {
 	Dialog.create("Denoising pre-process");
 	Dialog.addMessage("DISCLAIMER: Always check the images for z-drift and exposure before processing.\nComputational methods are not a substitute for good data acquisition technique.");
 	Dialog.addRadioButtonGroup("Operation", newArray("Train", "Run"), 1, 2, "Run");
+	Dialog.addMessage("Train: generate low resolution images for training.\nBatching is not available in train mode.");
+
 	Dialog.addNumber("Total number of channels:", 4);
 	
 	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Individual")
@@ -112,8 +113,24 @@ function dialoggen() {
 
 function processfolder() {
 	foldername = File.getName(dir1);
-	dirtiff = dir1 + "../" + foldername +"_tiff/";
-	File.makeDirectory(dirtiff);
+	if (train) {
+		dirtiff = dir1 + "../" + "ForTraining_" + foldername;
+		File.makeDirectory(dirtiff);
+		dirtiff = dirtiff + "/HighRes/";
+		File.makeDirectory(dirtiff);
+		
+		dirlowres = newArray(3);
+		for (i=0; i<3; i++) {
+			dirlowres[i] = dirtiff + "../LowRes" + i+1 + "/";
+			File.makeDirectory(dirlowres[i]);
+		}
+
+	} else {
+		dirtiff = dir1 + "../" + foldername +"_tiff/";
+		File.makeDirectory(dirtiff);
+	}
+
+	
 	
 	for (i=0; i<list1.length; i++) {
 		if (endsWith(list1[i], ".oir") || endsWith(list1[i], ".tif") ) {
@@ -151,7 +168,7 @@ function processfolder() {
 				for (j = 1; j <= numchan; j++) {
 					open(dirflat + "Flat_C" + j + ".tif");
 					run("BaSiC ", "processing_stack=C" + j +" flat-field=[Flat_C" + j + ".tif] dark-field=None shading_estimation=[Skip estimation and use predefined shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading and correct images] lambda_flat=0.50 lambda_dark=0.50");
-					}
+				}
 			}
 
 			if (numchan > 1) {
@@ -159,6 +176,7 @@ function processfolder() {
 			}
 			
 			saveAs("tiff", dirtiff + name);
+			create_lowres(dirlowres, name);
 			run("Close All");
 		}
 	}
@@ -183,5 +201,16 @@ function genarg(correction) {
 function getdirflat() {
 	if (correction == "flatfield") {
 		dirflat = getDirectory("Choose Flatfield");
+	}
+}
+
+function create_lowres(dirlowres, name) {
+	run("Divide...", "value=4.000 stack");
+	for (i=0; i<3; i++) {
+		run("Duplicate...", "duplicate");
+		num = 40 + 20 * random("gaussian");
+		run("Add Specified Noise...", "stack standard=" + num);
+		saveAs("tiff", dirlowres[i] + name);
+		close();
 	}
 }
