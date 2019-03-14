@@ -11,7 +11,7 @@ var listp1;
 var listp2;
 var numchan;
 var batch;
-var correction = false;
+var correction;
 var train;
 var foldername;
 
@@ -21,7 +21,7 @@ var dirmax;
 var list;
 var lastfile;
 var maxproj;
-var zstart;
+var zslices;
 var currentstitch = 0; // Number of groups - 1
 setBatchMode(true);
 
@@ -52,9 +52,9 @@ if (!batch || train) { // Individual
 		}
 		for (j = 0; j < listbig.length; j++) {
 			if (endsWith(listbig[j], "/") || endsWith(listbig[j], "\\")) { 
-				dir1 = dirbig + listbig[j];;
+				dir1 = dirbig + listbig[j];
 				list1 = getFileList(dir1);
-				processfolder();
+				//processfolder();
 			}
 		}
 	} else { // Batch two phases
@@ -103,10 +103,12 @@ if (!batch || train) { // Individual
 }
 
 // Phase 2
+print("At Phase 2");
 if (!train || stitch) {
 	if (!batch) {
-		dirbig = dirtiff;
-		listbig = newArray(foldername + "_tiff/");
+		dirbig = dir1 + "../";
+		listbig = newArray(1);
+		listbig[0] = foldername + "_tiff/";
 	} else {
 		listbig = getFileList(dirbig);
 	}
@@ -114,6 +116,7 @@ if (!train || stitch) {
 	for (j = 0; j < listbig.length; j++) { // Iterate through each subfolder
 		if (endsWith(listbig[j], "_tiff/")) {
 			dir = dirbig + listbig[j];
+			print(dir);
 			list = getFileList(dir);
 			lastfile = getLastFile();
 			numstitch = parseInt(substring(list[lastfile], lengthOf(list[lastfile])-12,lengthOf(list[lastfile])-9)); // Number of stitches to make
@@ -137,6 +140,7 @@ if (!train || stitch) {
 			containsconf = checkTileConfig(dir, false);
 			
 			for (i = 0; i < numstitch; i++) { // Stitch
+				print("At numstitch");
 				sublist = getFileList(dirmax[i]);
 				if (sublist.length != 0) { // Protect against "skipping" G001 ... G003
 					if (containsconf) {
@@ -150,15 +154,16 @@ if (!train || stitch) {
 					}*/
 	
 					getDimensions(width, height, channels, slices, frames);
-					if ((slices - initialslice) > 1.5*(zslice+1)) {
+					if ((slices - initialslice) > 1.5*(zslices+1)) {
 						noslice = true;
 						setSlice(floor(slices/2));
 					} else {
+						noslice = false;
 						if (maxproj) {
-							if (zstart > slices) {
+							if (zslices > slices) {
 								exit("Requested Z projection impossible, not enough slices");
 							}
-							run("Z Project...", "start=" + floor(slices/2-zstart/2) + " stop=" + floor(slices/2+zstart/2) + " projection=[Max Intensity]");
+							run("Z Project...", "start=" + floor(slices/2-zslices/2) + " stop=" + floor(slices/2+zslices/2) + " projection=[Max Intensity]");
 						} else {
 							setSlice(floor(slices/2));
 						}
@@ -211,7 +216,6 @@ function dialoggen() {
 	} else {
 		stitch = false;
 	}
-
 	
 	if (Dialog.getRadioButton() == "Individual") {
 		batch = false;
@@ -224,17 +228,16 @@ function dialoggen() {
 	} else {
 		correction = false;
 	}
-	print("Correction: " + correction);
 
+	zslices = Dialog.getNumber();
 
-	zstart = Dialog.getNumber();
-
-	if (zstart == 0) {
+	if (zslices == 0) {
 		maxproj = false;
 	} else {
 		maxproj = true;
 	}
 }
+
 
 function processfolder() {
 	foldername = File.getName(dir1);
@@ -306,13 +309,16 @@ function processfolder() {
 			if (numchan > 1) {
 				run("Merge Channels...", genarg(correction));
 			}
-			
+
 			saveAs("tiff", dirtiff + name);
-			create_lowres(dirlowres, name);
+			if (train) {
+				create_lowres(dirlowres, name);
+			}
 			run("Close All");
 		}
 	}
 }
+
 
 function getdirflat() {
 	if (correction) {
@@ -320,10 +326,9 @@ function getdirflat() {
 	}
 }
 
-
 function genarg(correction) {
 	arg = "";
-	if (correction != "None") {
+	if (correction) {
 		for (i=1; i<=numchan; i++) {
 			arg = arg + " c" + i + "=" + "[Corrected:C" + i + "]";
 		}
@@ -337,6 +342,7 @@ function genarg(correction) {
 	return arg;
 }
 
+
 function getLastFile() {
 	n = list.length - 1;
 	while (!(endsWith(list[n], ".oir") || endsWith(list[n], ".tif")) || (startsWith(list[n], "Stitch"))) {
@@ -345,11 +351,13 @@ function getLastFile() {
 	return n;
 }
 
+
 function checkTileConfig(dir, precheck) {
 	if (!precheck) {
-		dir = substring(dir, 0, lengthOf(dir)-10) + "/";
+		dir = substring(dir, 0, lengthOf(dir)-6) + "/";
 	}
 	conflast = "TileConfiguration" + currentstitch+1 + ".txt";
+	print(dir+conflast);
 	if (File.exists(dir + conflast)) {
 		containsconf = true;
 		if (!precheck) {
@@ -366,19 +374,35 @@ function checkTileConfig(dir, precheck) {
 	return containsconf;
 }
 
+
+function create_lowres(dirlowres, name) {
+	run("Divide...", "value=4.000 stack");
+	for (i=0; i<3; i++) {
+		run("Duplicate...", "duplicate");
+		num = 40 + 20 * random("gaussian");
+		run("Add Specified Noise...", "stack standard=" + num);
+		saveAs("tiff", dirlowres[i] + name);
+		close();
+	}
+}
+
+
 function getnumslice(dirslice) {
 	listslice = getFileList(dirslice);
 	opened = false;
+	i = 0;
 	while (!opened) {
-		if (endsWith(listslice[i], ".tif") {
-			open(dirslice + listslice[i];
+		if (endsWith(listslice[i], ".tif")) {
+			open(dirslice + listslice[i]);
 			opened = true;
 		}
+		i++;
 	}
 	getDimensions(width, height, channels, slices, frames);
 	close();
 	return slices;
 }
+
 
 function deletedir(dirdel) {
 	listdel = getFileList(dirdel);
