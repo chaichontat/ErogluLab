@@ -54,7 +54,7 @@ if (!batch || train) { // Individual
 			if (endsWith(listbig[j], "/") || endsWith(listbig[j], "\\")) { 
 				dir1 = dirbig + listbig[j];
 				list1 = getFileList(dir1);
-				//processfolder();
+				processfolder();
 			}
 		}
 	} else { // Batch two phases
@@ -103,7 +103,6 @@ if (!batch || train) { // Individual
 }
 
 // Phase 2
-print("At Phase 2");
 if (!train || stitch) {
 	if (!batch) {
 		dirbig = dir1 + "../";
@@ -148,11 +147,7 @@ if (!train || stitch) {
 						initialslice = getnumslice(dirmax[i]);
 						run("Grid/Collection stitching", "type=[Positions from file] order=[Right & Down                ] directory=[" + dirmax[i] + "] layout_file=TileConfiguration.txt fusion_method=[Linear Blending] regression_threshold=0.30 max/avg_displacement_threshold=0.5 absolute_displacement_threshold=2 compute_overlap subpixel_accuracy computation_parameters=[Save computation time (but use more RAM)] image_output=[Fuse and display]");
 					}
-					/*else {
-						waitForUser("Tile configuration file not found. Stitching may take a long time.");
-						run("Grid/Collection stitching", "type=[Unknown position] order=[All files in directory] directory=[" + dirmax[i] + "] output_textfile_name=TileConfiguration.txt fusion_method=[Linear Blending] regression_threshold=0.30 max/avg_displacement_threshold=0.5 absolute_displacement_threshold=2 subpixel_accuracy computation_parameters=[Save computation time (but use more RAM)] image_output=[Fuse and display]");
-					}*/
-	
+
 					getDimensions(width, height, channels, slices, frames);
 					if ((slices - initialslice) > 1.5*(zslices+1)) {
 						noslice = true;
@@ -179,7 +174,7 @@ if (!train || stitch) {
 		}
 	}
 	if (noslice) {
-		waitForUser("Some images were not max-projected. Sort by file size to check.
+		waitForUser("Some images were not max-projected. Sort by file size to check.");
 	}
 }
 
@@ -352,23 +347,23 @@ function getLastFile() {
 }
 
 
-function checkTileConfig(dir, precheck) {
+function checkTileConfig(dircheck, precheck) {
 	if (!precheck) {
 		dir = substring(dir, 0, lengthOf(dir)-6) + "/";
 	}
 	conflast = "TileConfiguration" + currentstitch+1 + ".txt";
-	print(dir+conflast);
-	if (File.exists(dir + conflast)) {
+	print(dircheck+conflast);
+	if (File.exists(dircheck + conflast)) {
 		containsconf = true;
 		if (!precheck) {
 			for (j=1; j<=currentstitch+1; j++) {
-				File.copy(dir + "TileConfiguration" + j + ".txt", dirmax[j-1] + "/TileConfiguration.txt");
+				File.copy(dircheck + "TileConfiguration" + j + ".txt", dirmax[j-1] + "/TileConfiguration.txt");
 			}
 		}
 	} else {
 		containsconf = false;
 		if (precheck) {
-			exit("TileConfiguration file not found in " + dir +" , run processMATL first.");
+			exit("TileConfiguration file not found in " + dircheck +" , run processMATL first.");
 		}
 	}
 	return containsconf;
