@@ -15,7 +15,7 @@ dirbig = getDirectory("Choose a Directory");
 listbig = getFileList(dirbig);
 
 for (j = 0; j < listbig.length; j++) { // Iterate through each subfolder
-	if (endsWith(listbig[j], "_restored/")) {
+	if (endsWith(listbig[j], "_tiff/")) {
 		dir = dirbig + listbig[j];
 		list = getFileList(dir);
 		lastfile = getLastFile();
