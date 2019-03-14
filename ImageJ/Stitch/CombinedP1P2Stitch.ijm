@@ -11,17 +11,18 @@ var listp1;
 var listp2;
 var numchan;
 var batch;
-var correction;
+var correction = false;
 var train;
 var foldername;
 
+var stitch;
 var dir;
 var dirmax;
 var list;
 var lastfile;
 var maxproj;
 var zstart;
-var currentstitch; // Number of groups - 1
+var currentstitch = 0; // Number of groups - 1
 setBatchMode(true);
 
 dialoggen();
@@ -46,7 +47,7 @@ if (!batch || train) { // Individual
 	if (numchan < 3) { // One phase
 		for (j = 0; j < listbig.length; j++) {
 			if (endsWith(listbig[j], "/") || endsWith(listbig[j], "\\")) { // Check TileConfig
-				checkTileConfig(listbig[j], true);
+				checkTileConfig(dirbig + listbig[j], true);
 			}
 		}
 		for (j = 0; j < listbig.length; j++) {
@@ -63,13 +64,13 @@ if (!batch || train) { // Individual
 			new = listbig[j];
 			cycloc = indexOf(new, "P1_Cycle");
 			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && !endsWith(new, "tiff/")) {
-				checkTileConfig(new, true);
+				checkTileConfig(dirbig + new, true);
 			}
 		}
+		
 		for (j = 0; j < listbig.length; j++) {
 			new = listbig[j];
 			cycloc = indexOf(new, "P1_Cycle");
-			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && !endsWith(new, "tiff/")) {
 			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && !endsWith(new, "tiff/")) { // Check if directory and from Olympus
 				p2index = -1;
 				newp2 = substring(new,0,cycloc) + "P2_Cycle";
@@ -90,7 +91,7 @@ if (!batch || train) { // Individual
 				}
 			}
 		}
-		
+	
 		for (j = 0; j < listp1.length; j++) {
 			dir1 = dirbig + listp1[j];
 			dir2 = dirbig + listp2[j];
@@ -102,7 +103,7 @@ if (!batch || train) { // Individual
 }
 
 // Phase 2
-if (!train) {
+if (!train || stitch) {
 	if (!batch) {
 		dirbig = dirtiff;
 		listbig = newArray(foldername + "_tiff/");
@@ -185,13 +186,17 @@ function dialoggen() {
 	Dialog.addMessage("Train: generate low resolution images for training.\nBatching is not available in train mode.");
 
 	Dialog.addNumber("Total number of channels:", 4);
-	
+	Dialog.addRadioButtonGroup("Stitch", newArray("Yes", "No"), 1, 2, "Yes")
 	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
 	Dialog.addMessage("For individual, choose P1 then P2 folder.");
 	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
 	
-	Dialog.addRadioButtonGroup("Vignette Correction:", newArray("None", "Flatfield"), 1, 2, "None");
-	Dialog.addMessage("If flatfield vignette correction is selected, choose the flatfield directory after choosing P1/P2.");
+	Dialog.addRadioButtonGroup("Vignette Correction", newArray("Yes", "No"), 1, 2, "Yes");
+	Dialog.addMessage("If vignette correction is selected, choose the flatfield directory after choosing P1/P2.");
+
+	Dialog.addMessage("Max Z Projection, for no projection, put 0 in both boxes.\nNote: if there's significant tilt in the xy plane, max projection will not be performed.")
+	Dialog.addNumber("Z depth (slices): ", 9);
+	Dialog.show();
 
 	if (Dialog.getRadioButton() == "Train") {
 		train = true;
@@ -201,21 +206,26 @@ function dialoggen() {
 
 	numchan  = Dialog.getNumber();
 	
+	if (Dialog.getRadioButton() == "Yes") {
+		stitch = true;
+	} else {
+		stitch = false;
+	}
+
+	
 	if (Dialog.getRadioButton() == "Individual") {
 		batch = false;
 	} else {
 		batch = true;
 	}
-
-	if (Dialog.getRadioButton() == "None") {
-		correction = "None";
+	
+	if (Dialog.getRadioButton() == "Yes") {
+		correction = true;
 	} else {
-		correction = "flatfield";
-	}	
+		correction = false;
+	}
+	print("Correction: " + correction);
 
-	Dialog.addMessage("Max Z Projection, for no projection, put 0 in both boxes.\nNote: if there's significant tilt in the xy plane, max projection will not be performed.")
-	Dialog.addNumber("Z depth (slices): ", 9);
-	Dialog.show();
 
 	zstart = Dialog.getNumber();
 
@@ -286,7 +296,7 @@ function processfolder() {
 				}
 			}
 
-			if (correction == "flatfield") {
+			if (correction) {
 				for (j = 1; j <= numchan; j++) {
 					open(dirflat + "Flat_C" + j + ".tif");
 					run("BaSiC ", "processing_stack=C" + j +" flat-field=[Flat_C" + j + ".tif] dark-field=None shading_estimation=[Skip estimation and use predefined shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading and correct images] lambda_flat=0.50 lambda_dark=0.50");
@@ -303,6 +313,13 @@ function processfolder() {
 		}
 	}
 }
+
+function getdirflat() {
+	if (correction) {
+		dirflat = getDirectory("Choose Flatfield");
+	}
+}
+
 
 function genarg(correction) {
 	arg = "";
@@ -333,7 +350,7 @@ function checkTileConfig(dir, precheck) {
 		dir = substring(dir, 0, lengthOf(dir)-10) + "/";
 	}
 	conflast = "TileConfiguration" + currentstitch+1 + ".txt";
-	if (File.exists(confdir + conflast)) {
+	if (File.exists(dir + conflast)) {
 		containsconf = true;
 		if (!precheck) {
 			for (j=1; j<=currentstitch+1; j++) {
