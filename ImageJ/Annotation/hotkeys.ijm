@@ -3,14 +3,29 @@ macro "Switch Color [c]" {
 	getDimensions(width, height, channels, slices, frames);
 	Stack.setDisplayMode("color");
 	Stack.getActiveChannels(ch);
-	print("old:" + ch);
 	current = lastIndexOf(ch,1) + 1;
 	if (current == channels) {
 		newchan = 1;
 	} else {
 		newchan = current+1;
 	}
+
+	if (current == channels-1) { // Avoid mask
+		if (is_mask(newchan)) {
+				newchan = 1;
+		}
+	}
+	
 	Stack.setChannel(newchan);
+
+	function is_mask(chan) {
+		Stack.setChannel(chan);
+		if (getPixel(0,0) == 251 && getPixel(1,0) == 148 && getPixel(0,1) == 249) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
 
 macro "No Show [a]" {
