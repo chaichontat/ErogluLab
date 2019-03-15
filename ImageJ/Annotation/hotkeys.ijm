@@ -125,23 +125,20 @@ macro "ROI to Overlay [p]" {
 macro "Mask to ROI [m]" {
 	minsize = getNumber("Minimum cell area? ", 50);
 	name = getTitle();
-	setBatchMode(true);
 	getDimensions(width, height, channels, slices, frames);
 	Stack.setDisplayMode("color");
 	Stack.setChannel(channels);
 
 	run("Duplicate...", " ");
-	setAutoThreshold("Li dark");
-	run("Threshold...");
-	waitForUser("Adjust threshold and click OK");
+	setAutoThreshold("Moments dark");
+	//run("Threshold...");
+	//waitForUser("Adjust threshold and click OK");
 	run("Convert to Mask");
 	run("Watershed");
-	roiManager("Deselect");
 	run("Analyze Particles...", "size=" + minsize + "-Infinity display clear add");
 	close();
 
 	run("Remove Overlay");
-	setBatchMode(false);
 	roiManager("Show All");
 	Stack.setChannel(1);
 }
