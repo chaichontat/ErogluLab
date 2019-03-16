@@ -75,17 +75,15 @@ macro "ROI to Overlay [p]" {
 			roiManager("Remove Slice Info");
 			roiManager("Remove Frame Info");
 		}
-		
-		if (channels == 1) {
-			lastmask == false;
-		} else {
-			lastmask = is_mask(channels);
-		}
-		
 		path =  getInfo("image.directory"); 
 		rename("temp");
-		run("Split Channels");
-		run("Merge Channels...", gen_arg(channels,lastmask));
+		if (channels == 1) {
+			lastmask = false;
+		} else {
+			lastmask = is_mask(channels);
+			run("Split Channels");
+			run("Merge Channels...", gen_arg(channels,lastmask));
+		}
 		
 		if (lastmask) {
 			close("C" + channels + "-temp");
@@ -138,6 +136,8 @@ macro "Mask to ROI [m]" {
 	run("Watershed");
 	roiManager("Deselect");
 	run("Analyze Particles...", "size=" + minsize + "-Infinity display clear add");
+	close();
+	close();
 	close();
 
 	run("Remove Overlay");

@@ -179,7 +179,7 @@ if (!train || stitch) {
 		}
 	}
 	if (noslice) {
-		waitForUser("Some images were not max-projected. Sort by file size to check.
+		waitForUser("Some images were not max-projected. Sort by file size to check.");
 	}
 }
 
