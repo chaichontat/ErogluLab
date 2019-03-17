@@ -1,6 +1,7 @@
 // Get statistics from U-Net
 
 var minsize;
+run("Set Measurements...");
 minsize = getNumber("Minimum cell area? ", 50);
 dir = getDirectory("Choose a Directory");
 list = getFileList(dir);
@@ -8,8 +9,14 @@ setBatchMode(true);
 
 for (i=0; i<list.length; i++) {
 	if (endsWith(list[i], ".tif")) {
+		if (roiManager("count") != 0) {
+			roiManager("deselect");
+			roiManager("delete");
+		}
+		
 		open(dir + list[i]);
-		mask_to_roi();
+		run("To ROI Manager");
+		//mask_to_roi();
 		roiManager("Measure");
 		saveAs("Results", dir + list[i] + ".csv");
 		run("Close All");

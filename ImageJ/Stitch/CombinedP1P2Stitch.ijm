@@ -46,12 +46,12 @@ if (!batch || train) { // Individual
 	getdirflat();
 	if (numchan < 3) { // One phase
 		for (j = 0; j < listbig.length; j++) {
-			if (endsWith(listbig[j], "/") || endsWith(listbig[j], "\\")) { // Check TileConfig
+			if (indexOf(listbig[j], "Cycle") != -1) { // Check TileConfig
 				checkTileConfig(dirbig + listbig[j], true);
 			}
 		}
 		for (j = 0; j < listbig.length; j++) {
-			if (endsWith(listbig[j], "/") || endsWith(listbig[j], "\\")) { 
+			if (indexOf(listbig[j], "Cycle") != -1) { 
 				dir1 = dirbig + listbig[j];
 				list1 = getFileList(dir1);
 				processfolder();
