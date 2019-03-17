@@ -46,12 +46,12 @@ if (!batch || train) { // Individual
 	getdirflat();
 	if (numchan < 3) { // One phase
 		for (j = 0; j < listbig.length; j++) {
-			if (indexOf(listbig[j], "Cycle") != -1) { // Check TileConfig
+			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/")) { // Check TileConfig
 				checkTileConfig(dirbig + listbig[j], true);
 			}
 		}
 		for (j = 0; j < listbig.length; j++) {
-			if (indexOf(listbig[j], "Cycle") != -1) { 
+			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/")) { 
 				dir1 = dirbig + listbig[j];
 				list1 = getFileList(dir1);
 				processfolder();
@@ -74,15 +74,12 @@ if (!batch || train) { // Individual
 			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && !endsWith(new, "tiff/")) { // Check if directory and from Olympus
 				p2index = -1;
 				newp2 = substring(new,0,cycloc) + "P2_Cycle";
-				print(newp2);
-				Array.print(listbig);
 				idx = -1;
 				while (p2index == -1) {
 					idx++;
 					p2index = indexOf(listbig[idx], newp2);
 				}
 
-				print(listbig[idx]);
 				if (p2index != -1) {
 					listp1 = Array.concat(listp1, new);
 					listp2 = Array.concat(listp2, listbig[idx]);
