@@ -124,6 +124,7 @@ if (!train || stitch) {
 			}
 			
 			currentstitch = 0;
+
 			for (i = 0; i < list.length; i++) { // Separate by G001..G00n
 				if (endsWith(list[i], ".tif")) {
 					while (indexOf(list[i], "G00" + (currentstitch+1)) == -1) { // Increase to G002 if there's no G001 in file name
@@ -138,11 +139,14 @@ if (!train || stitch) {
 			for (i = 0; i < numstitch; i++) { // Stitch
 				print("At numstitch");
 				sublist = getFileList(dirmax[i]);
+				
 				if (sublist.length != 0) { // Protect against "skipping" G001 ... G003
 					if (containsconf) {
 						print("TileConfig Found");
 						initialslice = getnumslice(dirmax[i]);
 						run("Grid/Collection stitching", "type=[Positions from file] order=[Right & Down                ] directory=[" + dirmax[i] + "] layout_file=TileConfiguration.txt fusion_method=[Linear Blending] regression_threshold=0.30 max/avg_displacement_threshold=0.5 absolute_displacement_threshold=2 compute_overlap subpixel_accuracy computation_parameters=[Save computation time (but use more RAM)] image_output=[Fuse and display]");
+					} else {
+						exit("No TileConfig");
 					}
 
 					getDimensions(width, height, channels, slices, frames);
@@ -182,17 +186,17 @@ function dialoggen() {
 	Dialog.addRadioButtonGroup("Operation", newArray("Train", "Run"), 1, 2, "Run");
 	Dialog.addMessage("Train: generate low resolution images for training.\nBatching is not available in train mode.");
 
-	Dialog.addNumber("Total number of channels:", 4);
+	Dialog.addNumber("Total number of channels:", 2);
 	Dialog.addRadioButtonGroup("Stitch", newArray("Yes", "No"), 1, 2, "Yes")
 	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
 	Dialog.addMessage("For individual, choose P1 then P2 folder.");
 	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
 	
-	Dialog.addRadioButtonGroup("Vignette Correction", newArray("Yes", "No"), 1, 2, "Yes");
+	Dialog.addRadioButtonGroup("Vignette Correction", newArray("Yes", "No"), 1, 2, "No");
 	Dialog.addMessage("If vignette correction is selected, choose the flatfield directory after choosing P1/P2.");
 
 	Dialog.addMessage("Max Z Projection, for no projection, put 0 in both boxes.\nNote: if there's significant tilt in the xy plane, max projection will not be performed.")
-	Dialog.addNumber("Z depth (slices): ", 9);
+	Dialog.addNumber("Z depth (slices): ", 0);
 	Dialog.show();
 
 	if (Dialog.getRadioButton() == "Train") {
@@ -346,10 +350,9 @@ function getLastFile() {
 
 function checkTileConfig(dircheck, precheck) {
 	if (!precheck) {
-		dir = substring(dir, 0, lengthOf(dir)-6) + "/";
+		dircheck = substring(dircheck, 0, lengthOf(dircheck)-6) + "/";
 	}
 	conflast = "TileConfiguration" + currentstitch+1 + ".txt";
-	print(dircheck+conflast);
 	if (File.exists(dircheck + conflast)) {
 		containsconf = true;
 		if (!precheck) {
