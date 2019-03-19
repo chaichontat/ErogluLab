@@ -1,5 +1,17 @@
+roipath = File.openDialog("Choose ROI file");
+if (!endsWith(roipath, ".roi")) {
+	exit("Invalid ROI file.");
+}
+
 dir = getDirectory("[Choose Source Directory]");
 list  = getFileList(dir);
+
+if (roiManager("count") != 0) {
+	roiManager("deselect");
+	roiManager("delete");
+}
+
+roiManager("open", roipath);
 setBatchMode(true);
 
 for (i=0; i<list.length; i++) {
@@ -12,6 +24,8 @@ for (i=0; i<list.length; i++) {
 		setSlice(j);
 		run("Clear", "slice");
 	}
+	
+	run("Make Inverse");
 	saveAs("tiff", dir + list[i]);
 	close();
 }

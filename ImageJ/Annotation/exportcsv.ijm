@@ -1,8 +1,6 @@
 // Get statistics from U-Net
 
-var minsize;
 run("Set Measurements...");
-minsize = getNumber("Minimum cell area? ", 50);
 dir = getDirectory("Choose a Directory");
 list = getFileList(dir);
 setBatchMode(true);
@@ -38,7 +36,7 @@ function mask_to_roi() {
 	Stack.setChannel(channels);
 
 	run("Duplicate...", " ");
-	setAutoThreshold("Moments dark");
+	setAutoThreshold("Default dark");
 	//run("Threshold...");
 	//waitForUser("Adjust threshold and click OK");
 	run("Convert to Mask");

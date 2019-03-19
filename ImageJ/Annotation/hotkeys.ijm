@@ -128,14 +128,12 @@ macro "Mask to ROI [m]" {
 	Stack.setChannel(channels);
 
 	run("Duplicate...", " ");
-	setAutoThreshold("Moments dark");
+	setAutoThreshold("Minimum dark");
 	//run("Threshold...");
 	//waitForUser("Adjust threshold and click OK");
 	run("Convert to Mask");
 	run("Watershed");
 	run("Analyze Particles...", "size=" + minsize + "-Infinity display clear add");
-	close();
-	close();
 	close();
 
 	run("Remove Overlay");
