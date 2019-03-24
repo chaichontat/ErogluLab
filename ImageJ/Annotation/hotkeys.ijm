@@ -128,7 +128,7 @@ macro "Mask to ROI [m]" {
 	Stack.setChannel(channels);
 
 	run("Duplicate...", " ");
-	setAutoThreshold("Minimum dark");
+	setAutoThreshold("MaxEntropy dark");
 	//run("Threshold...");
 	//waitForUser("Adjust threshold and click OK");
 	run("Convert to Mask");
