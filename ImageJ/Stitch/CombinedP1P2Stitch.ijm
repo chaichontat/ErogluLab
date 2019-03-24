@@ -265,8 +265,7 @@ function processfolder() {
 		if (endsWith(list1[i], ".oir") || endsWith(list1[i], ".tif") ) {
 			run("Bio-Formats Importer", "open=[" + dir1 + list1[i] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 			
-			name = getTitle();
-			name = substring(name, 0, lengthOf(name)-4);
+			name = substring(list1[i], 0, lengthOf(list1[i])-4);
 			rename("temp");
 			
 			if (numchan > 1) {
