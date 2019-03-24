@@ -188,15 +188,19 @@ function dialoggen() {
 
 	Dialog.addNumber("Total number of channels:", 2);
 	Dialog.addRadioButtonGroup("Stitch", newArray("Yes", "No"), 1, 2, "Yes")
+
+	Dialog.addRadioButtonGroup("Vignette Correction", newArray("Yes", "No"), 1, 2, "No");
+	Dialog.addMessage("If vignette correction is selected, choose the flatfield directory after choosing P1/P2.");
+
+/*
+	Dialog.addMessage("Max Z Projection, for no projection, put 0 in both boxes.\nNote: if there's significant tilt in the xy plane, max projection will not be performed.")
+	Dialog.addNumber("Z depth (slices): ", 0);
+*/
+
 	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
 	Dialog.addMessage("For individual, choose P1 then P2 folder.");
 	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
 	
-	Dialog.addRadioButtonGroup("Vignette Correction", newArray("Yes", "No"), 1, 2, "No");
-	Dialog.addMessage("If vignette correction is selected, choose the flatfield directory after choosing P1/P2.");
-
-	Dialog.addMessage("Max Z Projection, for no projection, put 0 in both boxes.\nNote: if there's significant tilt in the xy plane, max projection will not be performed.")
-	Dialog.addNumber("Z depth (slices): ", 0);
 	Dialog.show();
 
 	if (Dialog.getRadioButton() == "Train") {
@@ -212,25 +216,28 @@ function dialoggen() {
 	} else {
 		stitch = false;
 	}
-	
-	if (Dialog.getRadioButton() == "Individual") {
-		batch = false;
-	} else {
-		batch = true;
-	}
-	
+		
 	if (Dialog.getRadioButton() == "Yes") {
 		correction = true;
 	} else {
 		correction = false;
 	}
 
+	/*
 	zslices = Dialog.getNumber();
-
 	if (zslices == 0) {
 		maxproj = false;
 	} else {
 		maxproj = true;
+	}
+	*/
+
+	maxproj = false;
+
+	if (Dialog.getRadioButton() == "Individual") {
+		batch = false;
+	} else {
+		batch = true;
 	}
 }
 
