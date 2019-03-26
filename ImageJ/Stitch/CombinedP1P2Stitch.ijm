@@ -174,9 +174,6 @@ if (!train || stitch) {
 			}
 		}
 	}
-	if (noslice) {
-		waitForUser("Some images were not max-projected. Sort by file size to check.");
-	}
 }
 
 
@@ -260,6 +257,12 @@ function processfolder() {
 		dirtiff = dir1 + "../" + foldername +"_tiff/";
 		File.makeDirectory(dirtiff);
 	}
+	
+	if (correction) {
+		for (j = 1; j <= numchan; j++) {
+			open(dirflat + "Flat_C" + j + ".tif");
+		}
+	}
 
 	for (i=0; i<list1.length; i++) {
 		if (endsWith(list1[i], ".oir") || endsWith(list1[i], ".tif") ) {
@@ -303,7 +306,6 @@ function processfolder() {
 
 			if (correction) {
 				for (j = 1; j <= numchan; j++) {
-					open(dirflat + "Flat_C" + j + ".tif");
 					run("BaSiC ", "processing_stack=C" + j +" flat-field=[Flat_C" + j + ".tif] dark-field=None shading_estimation=[Skip estimation and use predefined shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading and correct images] lambda_flat=0.50 lambda_dark=0.50");
 				}
 			}
@@ -316,9 +318,17 @@ function processfolder() {
 			if (train) {
 				create_lowres(dirlowres, name);
 			}
-			run("Close All");
+
+			op = getList("image.titles");
+			for (img=0; img<op.length; img++) {
+				if (indexOf(op[img], "Flat") == -1) {
+					selectWindow(op[img]);
+					close();
+				}
+			}
 		}
 	}
+	run("Close All");
 }
 
 

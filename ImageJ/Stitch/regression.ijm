@@ -1,17 +1,28 @@
-getDimensions(width, height, channels, slices, frames);
-//setBatchMode(true);
+dir = getDirectory("Choose a Directory");
+list = getFileList(dir);
+setBatchMode(true);
 
-// Y-axis
-angley = get_angle("y");
-print("Y angle: " + angley);
+dirout = dir + "Rotated/";
+File.makeDirectory(dirout)
 
-// X-axis
-anglex = -1 * get_angle("x");
-print("X angle: " + anglex);
+for (i=0;i<list.length; i++) {
+	if (startsWith(list[i], "Stitched_") && endsWith(list[i], ".tif")) {
+		open(dir + list[i]);
+		getDimensions(width, height, channels, slices, frames);
+		// Y-axis
+		angley = get_angle("y");
+		print("Y angle: " + angley);
+		// X-axis
+		anglex = -1 * get_angle("x");
+		print("X angle: " + anglex);
+		run("TransformJ Rotate", "z-angle=0.0 y-angle=" + angley + " x-angle=" + anglex + " interpolation=Linear background=0.0 adjust");
+		make_substack();
+		resetMinAndMax();
+		saveAs("tiff", dirout + list[i]);
+		close();
+	}
+}
 
-run("TransformJ Rotate", "z-angle=0.0 y-angle=" + angley + " x-angle=" + anglex + " interpolation=Linear background=0.0 adjust");
-make_substack();
-resetMinAndMax();
 
 
 function get_angle(axis) {
@@ -27,8 +38,6 @@ function get_angle(axis) {
 	
 	run("Z Project...", "projection=[Max Intensity]");
 	getDimensions(width, height, channels, slices, frames);
-	//run("Size...", "width=" + floor(width/2) + " height=" + height*4 + " depth=" + channels + " average interpolation=Bilinear");
-	//waitForUser("Hold");
 	x = newArray(0);
 	y = newArray(0);
 	
@@ -96,7 +105,6 @@ function make_substack() {
 	end = get_stats("down", (slices*channels)+1);
 	print(end);
 	run("Make Substack...", "channels=1-" + channels + " slices=" + start + "-" + end);
-	setBatchMode("show");
 }
 
 function get_stats(direction, i) {
