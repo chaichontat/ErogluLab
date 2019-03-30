@@ -46,12 +46,12 @@ if (!batch || train) { // Individual
 	getdirflat();
 	if (numchan < 3) { // One phase
 		for (j = 0; j < listbig.length; j++) {
-			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/")) { // Check TileConfig
+			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/") && endsWith(listbig[j], "/")) { // Check TileConfig
 				checkTileConfig(dirbig + listbig[j], true);
 			}
 		}
 		for (j = 0; j < listbig.length; j++) {
-			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/")) { 
+			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/") && endsWith(listbig[j], "/")) { 
 				dir1 = dirbig + listbig[j];
 				list1 = getFileList(dir1);
 				processfolder();
@@ -63,7 +63,7 @@ if (!batch || train) { // Individual
 		for (j = 0; j < listbig.length; j++) {
 			new = listbig[j];
 			cycloc = indexOf(new, "P1_Cycle");
-			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && !endsWith(new, "tiff/")) {
+			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && !endsWith(new, "tiff/") && endsWith(listbig[j], "/")) {
 				checkTileConfig(dirbig + new, true);
 			}
 		}
