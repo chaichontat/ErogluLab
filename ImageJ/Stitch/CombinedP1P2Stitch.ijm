@@ -25,6 +25,9 @@ var zslices;
 var currentstitch = 0; // Number of groups - 1
 setBatchMode(true);
 
+// To stitch in 3D, remove the line below.
+eval("bsh", "mpicbg.stitching.GlobalOptimization.ignoreZ = true");
+
 dialoggen();
 
 // Phase 1
@@ -46,12 +49,12 @@ if (!batch || train) { // Individual
 	getdirflat();
 	if (numchan < 3) { // One phase
 		for (j = 0; j < listbig.length; j++) {
-			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/")) { // Check TileConfig
+			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/") && endsWith(listbig[j], "/")) { // Check TileConfig
 				checkTileConfig(dirbig + listbig[j], true);
 			}
 		}
 		for (j = 0; j < listbig.length; j++) {
-			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/")) { 
+			if (indexOf(listbig[j], "Cycle") != -1 && !endsWith(listbig[j], "_tiff/") && endsWith(listbig[j], "/")) { 
 				dir1 = dirbig + listbig[j];
 				list1 = getFileList(dir1);
 				processfolder();
@@ -63,7 +66,7 @@ if (!batch || train) { // Individual
 		for (j = 0; j < listbig.length; j++) {
 			new = listbig[j];
 			cycloc = indexOf(new, "P1_Cycle");
-			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && !endsWith(new, "tiff/")) {
+			if (((endsWith(new, "/") || endsWith(new, "\\")) && cycloc != -1) && !endsWith(new, "tiff/") && endsWith(listbig[j], "/")) {
 				checkTileConfig(dirbig + new, true);
 			}
 		}
@@ -174,29 +177,15 @@ if (!train || stitch) {
 			}
 		}
 	}
-	if (noslice) {
-		waitForUser("Some images were not max-projected. Sort by file size to check.");
-	}
 }
 
-
 function dialoggen() {
+	// Begin first screen
 	Dialog.create("Denoising pre-process");
 	Dialog.addMessage("DISCLAIMER: Always check the images for z-drift and exposure before processing.\nComputational methods are not a substitute for good data acquisition technique.");
 	Dialog.addRadioButtonGroup("Operation", newArray("Train", "Run"), 1, 2, "Run");
-	Dialog.addMessage("Train: generate low resolution images for training.\nBatching is not available in train mode.");
-
 	Dialog.addNumber("Total number of channels:", 2);
-	Dialog.addRadioButtonGroup("Stitch", newArray("Yes", "No"), 1, 2, "Yes")
-	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
-	Dialog.addMessage("For individual, choose P1 then P2 folder.");
-	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
-	
-	Dialog.addRadioButtonGroup("Vignette Correction", newArray("Yes", "No"), 1, 2, "No");
-	Dialog.addMessage("If vignette correction is selected, choose the flatfield directory after choosing P1/P2.");
-
-	Dialog.addMessage("Max Z Projection, for no projection, put 0 in both boxes.\nNote: if there's significant tilt in the xy plane, max projection will not be performed.")
-	Dialog.addNumber("Z depth (slices): ", 0);
+	Dialog.addRadioButtonGroup("Flatfield Correction", newArray("Yes", "No"), 1, 2, "No");
 	Dialog.show();
 
 	if (Dialog.getRadioButton() == "Train") {
@@ -204,8 +193,28 @@ function dialoggen() {
 	} else {
 		train = false;
 	}
-
 	numchan  = Dialog.getNumber();
+
+	if (Dialog.getRadioButton() == "Yes") {
+		correction = true;
+	} else {
+		correction = false;
+	}
+
+	if (!train) runscreen();
+	summary();
+	// End first screen	
+
+	Dialog.addMessage("For individual, choose P1 then P2 folder.");
+	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
+}
+	
+	
+function runscreen() {
+	Dialog.create("Options");
+	Dialog.addRadioButtonGroup("Stitch", newArray("Yes", "No"), 1, 2, "Yes")
+	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
+	Dialog.show();
 	
 	if (Dialog.getRadioButton() == "Yes") {
 		stitch = true;
@@ -218,20 +227,68 @@ function dialoggen() {
 	} else {
 		batch = true;
 	}
-	
-	if (Dialog.getRadioButton() == "Yes") {
-		correction = true;
-	} else {
-		correction = false;
-	}
+}
 
-	zslices = Dialog.getNumber();
+function summary() {
+	Dialog.create("Summary");
+	Dialog.addMessage("Here is your order, please re-check carefully.\n");
 
-	if (zslices == 0) {
-		maxproj = false;
+	if (train) {
+		if (correction) {
+			c = " with flatfield correction ";
+		} else {
+			c = "";
+		}
+		Dialog.addMessage("You want to generate a training dataset" + c + ".");
+		Dialog.addMessage("Here is the input I want in order after you click OK:\n");
+		if (numchan > 2) {
+			Dialog.addMessage("\t\t- The MATL folder that contains your Phase 1 OIR files.");
+			Dialog.addMessage("\t\t- The MATL folder that contains your Phase 2 OIR files.");
+		} else {
+			Dialog.addMessage("\t\t- The MATL folder that contains your OIR files.");
+		}
+		if (correction) {
+			Dialog.addMessage("\t\t- The folder that contains the flatfield images.");
+		}
+		Dialog.addMessage("\nHere is what I'm going to give you.");
+		Dialog.addMessage("\t\t- A folder that contains high and low resolution TIFF images with " + numchan + " channels.\n");
+		Dialog.addMessage("\nThis folder can be fed into train.ipynb for training.");
 	} else {
-		maxproj = true;
+		if (batch) {
+			word = "multiple folders";
+		} else {
+			word = "one folder";
+		}
+		Dialog.addMessage("You want to pre-process " + word + " for denoising.");
+		if (correction) {
+			Dialog.addMessage("You also want flatfield correction.");
+		}
+		Dialog.addMessage("Here is the input I want in order after you click OK:");
+		if (batch) {
+			Dialog.addMessage("\t\t- The big folder that contains all your MATL folders.\n");
+			if (numchan > 2) {
+				Dialog.addMessage("\t\t Btw, since there are " + numchan + " channels, make sure that the P1 and P2 folders are named correctly.\n");
+			}
+		} else {
+			if (numchan > 2) {
+				Dialog.addMessage("\t\t- The MATL folder that contains your Phase 1 OIR files.");
+				Dialog.addMessage("\t\t- The MATL folder that contains your Phase 2 OIR files.");
+			} else {
+				Dialog.addMessage("\t\t- The MATL folder that contains your OIR files.");
+			}
+		}
+		if (correction) {
+			Dialog.addMessage("\t\t- The folder that contains the flatfield images.");
+		}
+		Dialog.addMessage("\nHere is what I'm going to give you.\n");
+		Dialog.addMessage("\t\t- A folder that contains TIFF images with " + numchan + " channels.\n");
+		
+		if (stitch) {
+			Dialog.addMessage("\t\t- Stitched TIFF images that can be denoised.");
+		}
 	}
+	Dialog.addMessage("If you want to proceed, click OK.");
+	Dialog.show();
 }
 
 
@@ -253,13 +310,18 @@ function processfolder() {
 		dirtiff = dir1 + "../" + foldername +"_tiff/";
 		File.makeDirectory(dirtiff);
 	}
+	
+	if (correction) {
+		for (j = 1; j <= numchan; j++) {
+			open(dirflat + "Flat_C" + j + ".tif");
+		}
+	}
 
 	for (i=0; i<list1.length; i++) {
 		if (endsWith(list1[i], ".oir") || endsWith(list1[i], ".tif") ) {
 			run("Bio-Formats Importer", "open=[" + dir1 + list1[i] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 			
-			name = getTitle();
-			name = substring(name, 0, lengthOf(name)-4);
+			name = substring(list1[i], 0, lengthOf(list1[i])-4);
 			rename("temp");
 			
 			if (numchan > 1) {
@@ -297,7 +359,6 @@ function processfolder() {
 
 			if (correction) {
 				for (j = 1; j <= numchan; j++) {
-					open(dirflat + "Flat_C" + j + ".tif");
 					run("BaSiC ", "processing_stack=C" + j +" flat-field=[Flat_C" + j + ".tif] dark-field=None shading_estimation=[Skip estimation and use predefined shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading and correct images] lambda_flat=0.50 lambda_dark=0.50");
 				}
 			}
@@ -310,9 +371,17 @@ function processfolder() {
 			if (train) {
 				create_lowres(dirlowres, name);
 			}
-			run("Close All");
+
+			op = getList("image.titles");
+			for (img=0; img<op.length; img++) {
+				if (indexOf(op[img], "Flat") == -1) {
+					selectWindow(op[img]);
+					close();
+				}
+			}
 		}
 	}
+	run("Close All");
 }
 
 
