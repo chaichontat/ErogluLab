@@ -25,6 +25,9 @@ var zslices;
 var currentstitch = 0; // Number of groups - 1
 setBatchMode(true);
 
+// To stitch in 3D, remove the line below.
+eval("bsh", "mpicbg.stitching.GlobalOptimization.ignoreZ = true");
+
 dialoggen();
 
 // Phase 1
