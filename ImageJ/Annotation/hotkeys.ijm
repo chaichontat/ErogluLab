@@ -122,13 +122,14 @@ macro "ROI to Overlay [p]" {
 
 macro "Mask to ROI [m]" {
 	minsize = getNumber("Minimum cell area? ", 50);
+	thr = getString("Threshold?", "MaxEntropy")
 	name = getTitle();
 	getDimensions(width, height, channels, slices, frames);
 	Stack.setDisplayMode("color");
 	Stack.setChannel(channels);
 
 	run("Duplicate...", " ");
-	setAutoThreshold("MaxEntropy dark");
+	setAutoThreshold(thr + " dark");
 	//run("Threshold...");
 	//waitForUser("Adjust threshold and click OK");
 	run("Convert to Mask");
