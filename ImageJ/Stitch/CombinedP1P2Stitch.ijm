@@ -176,28 +176,13 @@ if (!train || stitch) {
 	}
 }
 
-
 function dialoggen() {
+	// Begin first screen
 	Dialog.create("Denoising pre-process");
 	Dialog.addMessage("DISCLAIMER: Always check the images for z-drift and exposure before processing.\nComputational methods are not a substitute for good data acquisition technique.");
 	Dialog.addRadioButtonGroup("Operation", newArray("Train", "Run"), 1, 2, "Run");
-	Dialog.addMessage("Train: generate low resolution images for training.\nBatching is not available in train mode.");
-
 	Dialog.addNumber("Total number of channels:", 2);
-	Dialog.addRadioButtonGroup("Stitch", newArray("Yes", "No"), 1, 2, "Yes")
-
-	Dialog.addRadioButtonGroup("Vignette Correction", newArray("Yes", "No"), 1, 2, "No");
-	Dialog.addMessage("If vignette correction is selected, choose the flatfield directory after choosing P1/P2.");
-
-/*
-	Dialog.addMessage("Max Z Projection, for no projection, put 0 in both boxes.\nNote: if there's significant tilt in the xy plane, max projection will not be performed.")
-	Dialog.addNumber("Z depth (slices): ", 0);
-*/
-
-	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
-	Dialog.addMessage("For individual, choose P1 then P2 folder.");
-	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
-	
+	Dialog.addRadioButtonGroup("Flatfield Correction", newArray("Yes", "No"), 1, 2, "No");
 	Dialog.show();
 
 	if (Dialog.getRadioButton() == "Train") {
@@ -205,37 +190,102 @@ function dialoggen() {
 	} else {
 		train = false;
 	}
-
 	numchan  = Dialog.getNumber();
-	
-	if (Dialog.getRadioButton() == "Yes") {
-		stitch = true;
-	} else {
-		stitch = false;
-	}
-		
+
 	if (Dialog.getRadioButton() == "Yes") {
 		correction = true;
 	} else {
 		correction = false;
 	}
 
-	/*
-	zslices = Dialog.getNumber();
-	if (zslices == 0) {
-		maxproj = false;
+	if (!train) runscreen();
+	summary();
+	// End first screen	
+
+	Dialog.addMessage("For individual, choose P1 then P2 folder.");
+	Dialog.addMessage("For batch, choose a big folder containing folders of each MATL folder.\n\t\t\t\t\t\tIf two phases, each MATL folder must end with \"P1\" or \"P2\"");
+}
+	
+	
+function runscreen() {
+	Dialog.create("Options");
+	Dialog.addRadioButtonGroup("Stitch", newArray("Yes", "No"), 1, 2, "Yes")
+	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
+	Dialog.show();
+	
+	if (Dialog.getRadioButton() == "Yes") {
+		stitch = true;
 	} else {
-		maxproj = true;
+		stitch = false;
 	}
-	*/
-
-	maxproj = false;
-
+	
 	if (Dialog.getRadioButton() == "Individual") {
 		batch = false;
 	} else {
 		batch = true;
 	}
+}
+
+function summary() {
+	Dialog.create("Summary");
+	Dialog.addMessage("Here is your order, please re-check carefully.\n");
+
+	if (train) {
+		if (correction) {
+			c = " with flatfield correction ";
+		} else {
+			c = "";
+		}
+		Dialog.addMessage("You want to generate a training dataset" + c + ".");
+		Dialog.addMessage("Here is the input I want in order after you click OK:\n");
+		if (numchan > 2) {
+			Dialog.addMessage("\t\t- The MATL folder that contains your Phase 1 OIR files.");
+			Dialog.addMessage("\t\t- The MATL folder that contains your Phase 2 OIR files.");
+		} else {
+			Dialog.addMessage("\t\t- The MATL folder that contains your OIR files.");
+		}
+		if (correction) {
+			Dialog.addMessage("\t\t- The folder that contains the flatfield images.");
+		}
+		Dialog.addMessage("\nHere is what I'm going to give you.");
+		Dialog.addMessage("\t\t- A folder that contains high and low resolution TIFF images with " + numchan + " channels.\n");
+		Dialog.addMessage("\nThis folder can be fed into train.ipynb for training.");
+	} else {
+		if (batch) {
+			word = "multiple folders";
+		} else {
+			word = "one folder";
+		}
+		Dialog.addMessage("You want to pre-process " + word + " for denoising.");
+		if (correction) {
+			Dialog.addMessage("You also want flatfield correction.");
+		}
+		Dialog.addMessage("Here is the input I want in order after you click OK:");
+		if (batch) {
+			Dialog.addMessage("\t\t- The big folder that contains all your MATL folders.\n");
+			if (numchan > 2) {
+				Dialog.addMessage("\t\t Btw, since there are " + numchan + " channels, make sure that the P1 and P2 folders are named correctly.\n");
+			}
+		} else {
+			if (numchan > 2) {
+				Dialog.addMessage("\t\t- The MATL folder that contains your Phase 1 OIR files.");
+				Dialog.addMessage("\t\t- The MATL folder that contains your Phase 2 OIR files.");
+			} else {
+				Dialog.addMessage("\t\t- The MATL folder that contains your OIR files.");
+			}
+		}
+		if (correction) {
+			Dialog.addMessage("\t\t- The folder that contains the flatfield images.");
+		}
+		Dialog.addMessage("\nHere is what I'm going to give you.\n");
+		Dialog.addMessage("\t\t- A folder that contains TIFF images with " + numchan + " channels.\n");
+		
+		if (stitch) {
+			Dialog.addMessage("\t\t- Stitched TIFF images that can be denoised.");
+		}
+	}
+	Dialog.addMessage("If you want to proceed, click OK.");
+	Dialog.show();
 }
 
 
