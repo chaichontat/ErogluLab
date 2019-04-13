@@ -4,7 +4,7 @@ list = getFileList(dir);
 setBatchMode(true);
 minsize = getNumber("Minimum cell area? ", 50);
 starts = getString("Name starts with?", "Cut")
-thr = getString("Threshold? ", "Default")
+thr = getNumber("Threshold? ", 38000)
 
 for (i=0; i< list.length;i++) {
 	if (startsWith(list[i], starts) && endsWith(list[i], ".tif")) {
@@ -15,7 +15,8 @@ for (i=0; i< list.length;i++) {
 		Stack.setChannel(channels);
 		
 		run("Duplicate...", " ");
-		setAutoThreshold(thr + " dark");
+		setThreshold(thr, 65535);
+		//setAutoThreshold(thr + " dark");
 		//run("Threshold...");
 		//waitForUser("Adjust threshold and click OK");
 		run("Convert to Mask");
