@@ -127,7 +127,7 @@ macro "Mask to ROI [m]" {
 	getDimensions(width, height, channels, slices, frames);
 	Stack.setDisplayMode("color");
 	Stack.setChannel(channels);
-
+	if (!is_mask(channels)) exit("Last channel is not mask.");
 	run("Duplicate...", " ");
 	setAutoThreshold(thr + " dark");
 	//run("Threshold...");
@@ -140,6 +140,15 @@ macro "Mask to ROI [m]" {
 	run("Remove Overlay");
 	roiManager("Show All");
 	Stack.setChannel(1);
+
+	function is_mask(chan) {
+		Stack.setChannel(chan);
+		if (getPixel(0,0) == 251 && getPixel(1,0) == 148 && getPixel(0,1) == 249) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
 
 

@@ -1,18 +1,17 @@
 ' Run U-Net and place mask in the last channel
-
-path = File.openDialog("Choose a File");
-modeldef = File.directory + substring(File.getName(path),0,lengthOf(File.getName(path))-14) + ".modeldef.h5";
-
-print(path);
-print(modeldef);
+' Must run the GUI with the exact same configuration at least once before running this script.
 
 dir = getDirectory("[Choose Source Directory]");
 list  = getFileList(dir);
+path = File.openDialog("Choose a File");
+modeldef = File.directory + substring(File.getName(path),0,lengthOf(File.getName(path))-14) + ".modeldef.h5";
 
 for (i=0; i<list.length; i++) {
 	if (endsWith(list[i], ".tif") && !startsWith(list[i], "Seg")) {
 		setBatchMode(false);
 		open(dir + list[i]);
+		run("Subtract Background...", "rolling=50");
+		run("16-bit");
 		getDimensions(width, height, channels, slices, frames);
 		name = getTitle();
 		run("Remove Overlay");

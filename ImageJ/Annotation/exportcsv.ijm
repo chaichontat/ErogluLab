@@ -6,7 +6,7 @@ list = getFileList(dir);
 setBatchMode(true);
 
 for (i=0; i<list.length; i++) {
-	if (endsWith(list[i], ".tif")) {
+	if ((startsWith(list[i], "Cut") || startsWith(list[i], "Seg")) && endsWith(list[i], ".tif")) {
 		if (roiManager("count") != 0) {
 			roiManager("deselect");
 			roiManager("delete");
