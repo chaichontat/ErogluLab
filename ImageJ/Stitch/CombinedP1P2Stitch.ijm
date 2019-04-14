@@ -14,6 +14,7 @@ var batch;
 var correction;
 var train;
 var foldername;
+var process;
 
 var stitch;
 var dir;
@@ -143,15 +144,15 @@ if (!train || stitch) {
 				print("At numstitch");
 				sublist = getFileList(dirmax[i]);
 				
-				if (sublist.length != 0) { // Protect against "skipping" G001 ... G003
+				if (sublist.length > 1) { // Protect against "skipping" G001 ... G003
 					if (containsconf) {
 						print("TileConfig Found");
-						initialslice = getnumslice(dirmax[i]);
-						run("Grid/Collection stitching", "type=[Positions from file] order=[Right & Down                ] directory=[" + dirmax[i] + "] layout_file=TileConfiguration.txt fusion_method=[Linear Blending] regression_threshold=0.30 max/avg_displacement_threshold=0.5 absolute_displacement_threshold=2 compute_overlap subpixel_accuracy computation_parameters=[Save computation time (but use more RAM)] image_output=[Fuse and display]");
+						run("Grid/Collection stitching", "type=[Positions from file] order=[Right & Down                ] directory=[" + dirmax[i] + "] layout_file=TileConfiguration.txt fusion_method=[Linear Blending] regression_threshold=0.20 max/avg_displacement_threshold=0.5 absolute_displacement_threshold=2 compute_overlap subpixel_accuracy computation_parameters=[Save computation time (but use more RAM)] image_output=[Fuse and display]");
 					} else {
 						exit("No TileConfig");
 					}
 
+/*
 					getDimensions(width, height, channels, slices, frames);
 					if ((slices - initialslice) > 1.5*(zslices+1)) {
 						noslice = true;
@@ -166,7 +167,7 @@ if (!train || stitch) {
 						} else {
 							setSlice(floor(slices/2));
 						}
-					}
+					}*/
 					
 					run("16-bit");
 					resetMinAndMax();
@@ -186,6 +187,7 @@ function dialoggen() {
 	Dialog.addRadioButtonGroup("Operation", newArray("Train", "Run"), 1, 2, "Run");
 	Dialog.addNumber("Total number of channels:", 2);
 	Dialog.addRadioButtonGroup("Flatfield Correction", newArray("Yes", "No"), 1, 2, "No");
+	Dialog.addRadioButtonGroup("Convert oir to tiff (No only if you have already run this script)", newArray("Yes", "No"), 1, 2, "Yes");
 	Dialog.show();
 
 	if (Dialog.getRadioButton() == "Train") {
@@ -199,6 +201,12 @@ function dialoggen() {
 		correction = true;
 	} else {
 		correction = false;
+	}
+
+	if (Dialog.getRadioButton() == "Yes") {
+		process = true;
+	} else {
+		process = false;
 	}
 
 	if (!train) runscreen();
@@ -293,95 +301,97 @@ function summary() {
 
 
 function processfolder() {
-	foldername = File.getName(dir1);
-	if (train) {
-		dirtiff = dir1 + "../" + "ForTraining_" + foldername;
-		File.makeDirectory(dirtiff);
-		dirtiff = dirtiff + "/HighRes/";
-		File.makeDirectory(dirtiff);
-		
-		dirlowres = newArray(3);
-		for (i=0; i<3; i++) {
-			dirlowres[i] = dirtiff + "../LowRes" + i+1 + "/";
-			File.makeDirectory(dirlowres[i]);
-		}
-
-	} else {
-		dirtiff = dir1 + "../" + foldername +"_tiff/";
-		File.makeDirectory(dirtiff);
-	}
-	
-	if (correction) {
-		for (j = 1; j <= numchan; j++) {
-			open(dirflat + "Flat_C" + j + ".tif");
-		}
-	}
-
-	for (i=0; i<list1.length; i++) {
-		if (endsWith(list1[i], ".oir") || endsWith(list1[i], ".tif") ) {
-			run("Bio-Formats Importer", "open=[" + dir1 + list1[i] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
+	if (process) {
+		foldername = File.getName(dir1);
+		if (train) {
+			dirtiff = dir1 + "../" + "ForTraining_" + foldername;
+			File.makeDirectory(dirtiff);
+			dirtiff = dirtiff + "/HighRes/";
+			File.makeDirectory(dirtiff);
 			
-			name = substring(list1[i], 0, lengthOf(list1[i])-4);
-			rename("temp");
-			
-			if (numchan > 1) {
-				run("Split Channels");
-				selectWindow("C1-temp");
-				rename("C1");
-				selectWindow("C2-temp");
-				rename("C2");
-			} else {
-				rename("C1");
+			dirlowres = newArray(3);
+			for (i=0; i<3; i++) {
+				dirlowres[i] = dirtiff + "../LowRes" + i+1 + "/";
+				File.makeDirectory(dirlowres[i]);
 			}
-			
-			if (numchan > 2) {
-				nameloc = indexOf(list1[i], "_A01_"); // Transform P1 to P2
-				p2name = substring(list1[i],0,nameloc-1) + "2" + substring(list1[i],nameloc,lengthOf(list1[i]));
-				p2loc = -1;
-				idx = -1;
-				while (p2loc == -1) {
-					idx++;
-					p2loc = indexOf(list2[idx], p2name);
-				}
+	
+		} else {
+			dirtiff = dir1 + "../" + foldername +"_tiff/";
+			File.makeDirectory(dirtiff);
+		}
+		
+		if (correction) {
+			for (j = 1; j <= numchan; j++) {
+				open(dirflat + "Flat_C" + j + ".tif");
+			}
+		}
+	
+		for (i=0; i<list1.length; i++) {
+			if (endsWith(list1[i], ".oir") || endsWith(list1[i], ".tif") ) {
+				run("Bio-Formats Importer", "open=[" + dir1 + list1[i] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 				
-				run("Bio-Formats Importer", "open=[" + dir2 + list2[idx] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
+				name = substring(list1[i], 0, lengthOf(list1[i])-4);
 				rename("temp");
-				if (numchan > 3) {
+				
+				if (numchan > 1) {
 					run("Split Channels");
 					selectWindow("C1-temp");
-					rename("C3");
+					rename("C1");
 					selectWindow("C2-temp");
-					rename("C4");
+					rename("C2");
 				} else {
-					rename("C3");
+					rename("C1");
 				}
-			}
-
-			if (correction) {
-				for (j = 1; j <= numchan; j++) {
-					run("BaSiC ", "processing_stack=C" + j +" flat-field=[Flat_C" + j + ".tif] dark-field=None shading_estimation=[Skip estimation and use predefined shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading and correct images] lambda_flat=0.50 lambda_dark=0.50");
+				
+				if (numchan > 2) {
+					nameloc = indexOf(list1[i], "_A01_"); // Transform P1 to P2
+					p2name = substring(list1[i],0,nameloc-1) + "2" + substring(list1[i],nameloc,lengthOf(list1[i]));
+					p2loc = -1;
+					idx = -1;
+					while (p2loc == -1) {
+						idx++;
+						p2loc = indexOf(list2[idx], p2name);
+					}
+					
+					run("Bio-Formats Importer", "open=[" + dir2 + list2[idx] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
+					rename("temp");
+					if (numchan > 3) {
+						run("Split Channels");
+						selectWindow("C1-temp");
+						rename("C3");
+						selectWindow("C2-temp");
+						rename("C4");
+					} else {
+						rename("C3");
+					}
 				}
-			}
-
-			if (numchan > 1) {
-				run("Merge Channels...", genarg(correction));
-			}
-
-			saveAs("tiff", dirtiff + name);
-			if (train) {
-				create_lowres(dirlowres, name);
-			}
-
-			op = getList("image.titles");
-			for (img=0; img<op.length; img++) {
-				if (indexOf(op[img], "Flat") == -1) {
-					selectWindow(op[img]);
-					close();
+	
+				if (correction) {
+					for (j = 1; j <= numchan; j++) {
+						run("BaSiC ", "processing_stack=C" + j +" flat-field=[Flat_C" + j + ".tif] dark-field=None shading_estimation=[Skip estimation and use predefined shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading and correct images] lambda_flat=0.50 lambda_dark=0.50");
+					}
+				}
+	
+				if (numchan > 1) {
+					run("Merge Channels...", genarg(correction));
+				}
+	
+				saveAs("tiff", dirtiff + name);
+				if (train) {
+					create_lowres(dirlowres, name);
+				}
+	
+				op = getList("image.titles");
+				for (img=0; img<op.length; img++) {
+					if (indexOf(op[img], "Flat") == -1) {
+						selectWindow(op[img]);
+						close();
+					}
 				}
 			}
 		}
+		run("Close All");
 	}
-	run("Close All");
 }
 
 
