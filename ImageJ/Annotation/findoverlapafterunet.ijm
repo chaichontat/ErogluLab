@@ -1,7 +1,9 @@
 ' Get 2 folders, find the overlap between ROIs, and save CSV statistics.
 
+ovl = getNumber("Overlap area?", 50);
 dir1 = getDirectory("Choose a Directory");
 dir2 = getDirectory("Choose a Directory");
+
 setBatchMode(true);
 
 list1 = getFileList(dir1);
@@ -34,7 +36,7 @@ for (i=0; i<list1.length;i++) {
 	
 		imageCalculator("AND create", "mask1","mask2");
 		run("Invert");
-		run("Analyze Particles...", "size=20-Infinity display clear add");
+		run("Analyze Particles...", "size=" + ovl + "-Infinity display clear add");
 		roiManager("Save", dir1 + list1[i] + "_overlapROI.zip");
 		saveAs("Results", dir1 + list1[i] + "_overlap.csv");
 	
