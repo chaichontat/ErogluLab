@@ -1,12 +1,13 @@
 // Get statistics from U-Net
 
-run("Set Measurements...");
+run("Set Measurements...", "area mean centroid redirect=None decimal=3");
 dir = getDirectory("Choose a Directory");
 list = getFileList(dir);
 setBatchMode(true);
+starts = getString("Name starts with?", "Cut");
 
 for (i=0; i<list.length; i++) {
-	if ((startsWith(list[i], "Cut") || startsWith(list[i], "Seg")) && endsWith(list[i], ".tif")) {
+	if (startsWith(list[i], starts) && endsWith(list[i], ".tif")) {
 		if (roiManager("count") != 0) {
 			roiManager("deselect");
 			roiManager("delete");
