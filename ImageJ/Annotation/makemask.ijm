@@ -26,6 +26,6 @@ for (i=0; i< list.length;i++) {
 	
 		run("Remove Overlay");
 		run("From ROI Manager");
-		saveAs("tiff", dir + list[i]);
+		saveAs("tiff", dir + substring(list[i],0,lengthOf(list[i])-4) + "_mask");
 	}
 }
