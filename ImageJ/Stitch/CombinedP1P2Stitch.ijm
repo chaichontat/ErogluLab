@@ -302,6 +302,7 @@ function summary() {
 
 
 function processfolder() {
+	foldername = File.getName(dir1);
 	if (process) {
 		foldername = File.getName(dir1);
 		if (train) {
