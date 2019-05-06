@@ -3,6 +3,19 @@
 ovl = getNumber("Overlap area?", 50);
 dir1 = getDirectory("Choose a Directory");
 dir2 = getDirectory("Choose a Directory");
+
+if (indexOf(dir1, "\\") == -1) {
+	delim = "/";
+} else {
+	delim = "\\";
+}
+
+dir1a = split(dir1, delim);
+dir2a = split(dir2, delim);
+dirout = dir1 + "../" + dir1a[dir1a.length-1] + dir2a[dir2a.length-1] + "/";
+File.makeDirectory(dirout)
+
+
 run("Set Measurements...", "area mean centroid redirect=None decimal=3");
 setBatchMode(true);
 
@@ -40,9 +53,8 @@ for (i=0; i<list1.length;i++) {
 
 		selectWindow(list1[i]);
 		run("From ROI Manager");
-		saveAs("tiff", dir1 + substring(list1[i],0,lengthOf(list1[i])-4) + "_overlapROI.zip");
-		roiManager("Save", dir1 + list1[i] + "_overlapROI.zip");
-		saveAs("Results", dir1 + list1[i] + "_overlap.csv");
+		saveAs("tiff", dirout + substring(list1[i],0,lengthOf(list1[i])-4) + "_overlapROI.zip");
+		saveAs("Results", dirout + list1[i] + "_overlap.csv");
 	
 		close("Results");
 		run("Close All");
