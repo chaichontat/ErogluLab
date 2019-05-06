@@ -20,6 +20,7 @@ for (i=0; i<list.length; i++) {
 		setBatchMode(true);
 		run("Split Channels");
 		rename("mask"); // channel 2
+		run("16-bit");
 		selectImage(name);
 		if (channels > 1) {
 			rename("temp");

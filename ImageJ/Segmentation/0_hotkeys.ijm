@@ -133,7 +133,6 @@ macro "Mask to ROI [m]" {
 	minsize = getNumber("Minimum cell area? ", 50);
 	name = getTitle();
 
-	setBatchMode(true);
 	run("Duplicate...", " ");
 	run("Convert to Mask");
 	run("Watershed");
@@ -141,6 +140,7 @@ macro "Mask to ROI [m]" {
 	close();
 
 	// Delete mask channel
+	setBatchMode(true);
 	name = getTitle();
 	rename("temp");
 	run("Split Channels");
@@ -180,9 +180,9 @@ macro "Post U-Net Mask Merge [u]" {
 	setBatchMode(true);
 	
 	// Get rid of extraneous things
-	close(name + " - normalized");
-	close(name + " - normalized - score (segmentation)");
-	selectWindow(name + " - normalized - score (softmax)");
+	close(name + " - 32-Bit - normalized");
+	close(name + " - 32-Bit - normalized - score (segmentation)");
+	selectWindow(name + " - 32-Bit - normalized - score (softmax)");
 	run("Split Channels");
 	rename("mask"); // channel 2
 	run("16-bit");

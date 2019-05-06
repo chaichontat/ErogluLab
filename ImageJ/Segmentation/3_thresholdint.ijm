@@ -4,7 +4,7 @@ dir = getDirectory("Choose a Directory");
 list = getFileList(dir);
 setBatchMode(true);
 minsize = getNumber("Minimum cell area? ", 50);
-starts = getString("Name starts with?", "Cut");
+starts = getString("Name starts with?", "Seg");
 thr = getNumber("Threshold? ", 30000);
 remove = getBoolean("Remove mask?");
 
@@ -53,7 +53,7 @@ for (i=0; i< list.length;i++) {
 
 		run("Remove Overlay");
 		run("From ROI Manager");
-		saveAs("tiff", dir + "ROI_" + substring(list[i],3, lengthOf(list[i])));
+		saveAs("tiff", dir + "ROI" + substring(list[i],3, lengthOf(list[i])));
 		close();
 	}
 }
