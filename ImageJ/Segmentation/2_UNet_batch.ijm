@@ -1,6 +1,7 @@
 ' Run U-Net and place mask in the last channel
 ' Must run the GUI with the exact same configuration at least once before running this script.
 
+waitForUser("Make sure that you have run the U-Net with the same settings at least once before running this script.");
 dir = getDirectory("[Choose Source Directory]");
 list  = getFileList(dir);
 path = File.openDialog("Choose a File");
@@ -10,17 +11,15 @@ for (i=0; i<list.length; i++) {
 	if (endsWith(list[i], ".tif") && !startsWith(list[i], "Seg")) {
 		setBatchMode(false);
 		open(dir + list[i]);
-		run("Subtract Background...", "rolling=50");
-		run("16-bit");
 		getDimensions(width, height, channels, slices, frames);
 		name = getTitle();
 		run("Remove Overlay");
-		call('de.unifreiburg.unet.SegmentationJob.processHyperStack', 'modelFilename=' + modeldef + ',weightsFilename=' + path + ',Tile shape (px):=244x244,gpuId=GPU 0,useRemoteHost=true,hostname=localhost,port=22,username=eroglulab,RSAKeyfile=/home/eroglulab/_key.rsa,processFolder=/home/eroglulab/Desktop/cellnet/,average=none,keepOriginal=true,outputScores=false,outputSoftmaxScores=true');
+		run("16-bit");
+		call('de.unifreiburg.unet.SegmentationJob.processHyperStack', 'modelFilename=' + modeldef + ',weightsFilename=' + path + ',Tile shape (px):=404x404,gpuId=GPU 0,useRemoteHost=true,hostname=localhost,port=22,username=eroglulab,RSAKeyfile=/home/eroglulab/_key.rsa,processFolder=/home/eroglulab/Desktop/cellnet/,average=none,keepOriginal=true,outputScores=false,outputSoftmaxScores=true');
 		close();
 		setBatchMode(true);
 		run("Split Channels");
 		rename("mask"); // channel 2
-		run("16-bit");
 		selectImage(name);
 		if (channels > 1) {
 			rename("temp");

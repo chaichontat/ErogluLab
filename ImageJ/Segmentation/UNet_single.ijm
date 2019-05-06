@@ -1,15 +1,24 @@
-path = File.openDialog("Choose a File");
-modeldef = File.directory + substring(File.getName(path),0,lengthOf(File.getName(path))-14) + ".modeldef.h5";
+waitForUser("This script merges U-Net mask with input image.\nSelect input image and click OK.");
+name = getTitle();
+
+// Catch user error
+if (!endsWith(name, ".tif")) {
+	exit("Please select the input image, not the output image.");
+}
 
 getDimensions(width, height, channels, slices, frames);
-name = getTitle();
-run("Remove Overlay");
-call('de.unifreiburg.unet.SegmentationJob.processHyperStack', 'modelFilename=' + modeldef + ',weightsFilename=' + path + ',Tile shape (px):=340x340,gpuId=GPU 0,useRemoteHost=true,hostname=localhost,port=22,username=eroglulab,RSAKeyfile=/home/eroglulab/_key.rsa,processFolder=/home/eroglulab/Desktop/cellnet/,average=none,keepOriginal=true,outputScores=false,outputSoftmaxScores=true');
-close();
+run("32-bit");
 setBatchMode(true);
+
+// Get rid of extraneous things
+close(name + " - normalized");
+close(name + " - normalized - score (segmentation)");
+selectWindow(name + " - normalized - score (softmax)");
 run("Split Channels");
 rename("mask"); // channel 2
-run("16-bit");
+close("C1-" + name + " - normalized - score (softmax)"); // close channel 1
+
+// Split
 selectImage(name);
 if (channels > 1) {
 	rename("temp");
@@ -17,14 +26,18 @@ if (channels > 1) {
 } else {
 	rename("C1-temp");
 }
+
+// Merge
 arg = "";
 for (j=1; j<=channels; j++) {
 	arg = arg + " c" + j + "=" + "C" + j + "-temp";
 }
 arg = arg + " c" + j + "=mask create";
 run("Merge Channels...", arg);
+
 set_mask(channels+1);
 rename(name);
+setBatchMode("show");
 
 function set_mask(chan) { // Mark that channel is a mask.
 	Stack.setChannel(chan);

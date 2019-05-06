@@ -121,26 +121,41 @@ macro "ROI to Overlay [p]" {
 }
 
 macro "Mask to ROI [m]" {
-	minsize = getNumber("Minimum cell area? ", 50);
-	thr = getString("Threshold?", "MaxEntropy")
-	name = getTitle();
 	getDimensions(width, height, channels, slices, frames);
+	if (!is_mask(channels)) exit("Last channel is not mask.");
+	
 	Stack.setDisplayMode("color");
 	Stack.setChannel(channels);
-	if (!is_mask(channels)) exit("Last channel is not mask.");
+
+	setAutoThreshold("Default dark no-reset");
+	run("Threshold...");
+	waitForUser("Adjust threshold and click OK");
+	minsize = getNumber("Minimum cell area? ", 50);
+	name = getTitle();
+
+	setBatchMode(true);
 	run("Duplicate...", " ");
-	setAutoThreshold(thr + " dark");
-	//run("Threshold...");
-	//waitForUser("Adjust threshold and click OK");
 	run("Convert to Mask");
 	run("Watershed");
 	run("Analyze Particles...", "size=" + minsize + "-Infinity display clear add");
 	close();
 
-	run("Remove Overlay");
-	roiManager("Show All");
-	Stack.setChannel(1);
+	// Delete mask channel
+	name = getTitle();
+	rename("temp");
+	run("Split Channels");
+	close("C" + channels + "-temp");
+	arg = "";
+	for (j=1; j<channels; j++) {
+		arg = arg + " c" + j + "=" + "C" + j + "-temp";
+	}
+	arg = arg + " create";
+	run("Merge Channels...", arg);
+	setBatchMode("show");
 
+	roiManager("Show All without labels");
+	rename(name); 
+	
 	function is_mask(chan) {
 		Stack.setChannel(chan);
 		if (getPixel(0,0) == 251 && getPixel(1,0) == 148 && getPixel(0,1) == 249) {
@@ -151,6 +166,56 @@ macro "Mask to ROI [m]" {
 	}
 }
 
+macro "Post U-Net Mask Merge [u]" {
+	waitForUser("This script merges U-Net mask with input image.\nSelect input image and click OK.");
+	name = getTitle();
+	
+	// Catch user error
+	if (!endsWith(name, ".tif")) {
+		exit("Please select the input image, not the output image.");
+	}
+	
+	getDimensions(width, height, channels, slices, frames);
+	run("16-bit");
+	setBatchMode(true);
+	
+	// Get rid of extraneous things
+	close(name + " - normalized");
+	close(name + " - normalized - score (segmentation)");
+	selectWindow(name + " - normalized - score (softmax)");
+	run("Split Channels");
+	rename("mask"); // channel 2
+	run("16-bit");
+	close("C1-" + name + " - normalized - score (softmax)"); // close channel 1
+	
+	// Split
+	selectImage(name);
+	if (channels > 1) {
+		rename("temp");
+		run("Split Channels");
+	} else {
+		rename("C1-temp");
+	}
+	
+	// Merge
+	arg = "";
+	for (j=1; j<=channels; j++) {
+		arg = arg + " c" + j + "=" + "C" + j + "-temp";
+	}
+	arg = arg + " c" + j + "=mask create";
+	run("Merge Channels...", arg);
+	
+	set_mask(channels+1);
+	rename(name);
+	setBatchMode("show");
+	
+	function set_mask(chan) { // Mark that channel is a mask.
+		Stack.setChannel(chan);
+		setPixel(0,0,251);
+		setPixel(1,0,148);
+		setPixel(0,1,249);
+	}
+}
 
 // Rotation kit
 macro "Smart Rotate [r]" {
