@@ -1,4 +1,5 @@
 ' Iterate through each subfolder, max project and save into corresponding "stitch" folder
+' To Fra, the regression threshold is at line 151.
 var dir1;
 var list1;
 var dir2;
@@ -147,7 +148,7 @@ if (!train || stitch) {
 				if (sublist.length > 1) { // Protect against "skipping" G001 ... G003
 					if (containsconf) {
 						print("TileConfig Found");
-						run("Grid/Collection stitching", "type=[Positions from file] order=[Right & Down                ] directory=[" + dirmax[i] + "] layout_file=TileConfiguration.txt fusion_method=[Linear Blending] regression_threshold=0.20 max/avg_displacement_threshold=0.5 absolute_displacement_threshold=2 compute_overlap subpixel_accuracy computation_parameters=[Save computation time (but use more RAM)] image_output=[Fuse and display]");
+						run("Grid/Collection stitching", "type=[Positions from file] order=[Right & Down                ] directory=[" + dirmax[i] + "] layout_file=TileConfiguration.txt fusion_method=[Linear Blending] regression_threshold=0.15 max/avg_displacement_threshold=0.5 absolute_displacement_threshold=2 compute_overlap subpixel_accuracy computation_parameters=[Save computation time (but use more RAM)] image_output=[Fuse and display]");
 					} else {
 						exit("No TileConfig");
 					}
@@ -301,6 +302,7 @@ function summary() {
 
 
 function processfolder() {
+	foldername = File.getName(dir1);
 	if (process) {
 		foldername = File.getName(dir1);
 		if (train) {
