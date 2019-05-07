@@ -42,12 +42,15 @@ for (i=0; i< list.length;i++) {
 			name = getTitle();
 			rename("temp");
 			run("Split Channels");
-			arg = "";
-			for (j=1; j<channels; j++) {
-				arg = arg + " c" + j + "=" + "C" + j + "-temp";
+			close();
+			if (channels > 2) {
+				arg = "";
+				for (j=1; j<channels; j++) {
+					arg = arg + " c" + j + "=" + "C" + j + "-temp";
+				}
+				arg = arg + " create";
+				run("Merge Channels...", arg);
 			}
-			arg = arg + " create";
-			run("Merge Channels...", arg);
 			rename(name);
 		}
 
