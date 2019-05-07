@@ -122,7 +122,7 @@ macro "ROI to Overlay [p]" {
 
 macro "Mask to ROI [m]" {
 	getDimensions(width, height, channels, slices, frames);
-	if (!is_mask(channels)) exit("Last channel is not mask.");
+	//if (!is_mask(channels)) exit("Last channel is not mask.");
 	
 	Stack.setDisplayMode("color");
 	Stack.setChannel(channels);
