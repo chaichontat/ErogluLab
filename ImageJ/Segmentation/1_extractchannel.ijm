@@ -46,7 +46,7 @@ function dialoggen() {
 	Dialog.addRadioButtonGroup("Directory Options", newArray("Individual", "Batch"), 1, 2, "Batch")
 	Dialog.addMessage("Individual deals with the current active image.\nFor batch, choose a folder containing the images.");
 	
-	Dialog.addRadioButtonGroup("2x scale", newArray("Yes", "No"), 1, 2, "Yes");
+	Dialog.addRadioButtonGroup("2x scale", newArray("Yes", "No"), 1, 2, "No");
 	Dialog.addMessage("Scale width and height up by 2x. Helps with segmentation.");
 
 	Dialog.addMessage("Max Z Projection Configuration\nFor no projection, put 0 in both boxes.")
