@@ -348,16 +348,16 @@ function processfolder() {
 				}
 				
 				if (numchan > 2) {
-					nameloc = indexOf(list1[i], "_A01_"); // Transform P1 to P2
+					/*nameloc = indexOf(list1[i], "_A01_"); // Transform P1 to P2
 					p2name = substring(list1[i],0,nameloc-1) + "2" + substring(list1[i],nameloc,lengthOf(list1[i]));
 					p2loc = -1;
 					idx = -1;
 					while (p2loc == -1) {
 						idx++;
 						p2loc = indexOf(list2[idx], p2name);
-					}
+					}*/
 					
-					run("Bio-Formats Importer", "open=[" + dir2 + list2[idx] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
+					run("Bio-Formats Importer", "open=[" + dir2 + list2[i] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 					rename("temp");
 					if (numchan > 3) {
 						run("Split Channels");
