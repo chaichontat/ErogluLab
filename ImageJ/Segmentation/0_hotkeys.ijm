@@ -169,24 +169,40 @@ macro "Mask to ROI [m]" {
 macro "Post U-Net Mask Merge [u]" {
 	waitForUser("This script merges U-Net mask with input image.\nSelect input image and click OK.");
 	name = getTitle();
+	getDimensions(width, height, channels, slices, frames);
 	
 	// Catch user error
 	if (!endsWith(name, ".tif")) {
 		exit("Please select the input image, not the output image.");
 	}
-	
-	getDimensions(width, height, channels, slices, frames);
+
+	list = getList("image.titles");
 	run("16-bit");
+	found = false;
+	i = 0;
+	while (!found) {
+		if (indexOf(list[i], "softmax") != -1) {
+			found = true;
+			selectWindow(list[i]);
+			rename("softmax");
+		} else {
+			i++;
+		}
+	}
+	
 	setBatchMode(true);
 	
 	// Get rid of extraneous things
 	close(name + " - 32-Bit - normalized");
+	close(name + " - normalized");
 	close(name + " - 32-Bit - normalized - score (segmentation)");
-	selectWindow(name + " - 32-Bit - normalized - score (softmax)");
+	close(name + " - normalized - score (segmentation)");
+	
+	selectWindow("softmax");
 	run("Split Channels");
 	rename("mask"); // channel 2
 	run("16-bit");
-	close("C1-" + name + " - normalized - score (softmax)"); // close channel 1
+	close("C1-" + name + "softmax"); // close channel 1
 	
 	// Split
 	selectImage(name);
