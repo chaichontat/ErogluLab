@@ -1,5 +1,5 @@
 ' Iterate through each subfolder, max project and save into corresponding "stitch" folder
-' To Fra, the regression threshold is at line 151.
+
 var dir1;
 var list1;
 var dir2;
@@ -307,6 +307,7 @@ function processfolder() {
 	foldername = File.getName(dir1);
 	if (process) {
 		foldername = File.getName(dir1);
+		print("Processing " + foldername);
 		if (train) {
 			dirtiff = dir1 + "../" + "ForTraining_" + foldername;
 			File.makeDirectory(dirtiff);
