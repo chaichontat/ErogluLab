@@ -41,7 +41,9 @@ if (!batch || train) { // Individual
 		dir2 = getDirectory("Choose P2");
 		list2 = getFileList(dir2);
 	}
-	checkTileConfig(dir1, true);
+	if (!train) {
+		checkTileConfig(dir1, true);
+	}
 	getdirflat();
 	processfolder();
 	
@@ -188,7 +190,7 @@ function dialoggen() {
 	Dialog.addRadioButtonGroup("Operation", newArray("Train", "Run"), 1, 2, "Run");
 	Dialog.addNumber("Total number of channels:", 2);
 	Dialog.addRadioButtonGroup("Flatfield Correction", newArray("Yes", "No"), 1, 2, "No");
-	Dialog.addRadioButtonGroup("Convert oir to tiff (No only if you have already run this script)", newArray("Yes", "No"), 1, 2, "Yes");
+	Dialog.addRadioButtonGroup("Convert files (Select Yes unless you have previously run this script.", newArray("Yes", "No"), 1, 2, "Yes");
 	Dialog.show();
 
 	if (Dialog.getRadioButton() == "Train") {
@@ -249,7 +251,7 @@ function summary() {
 			c = "";
 		}
 		Dialog.addMessage("You want to generate a training dataset" + c + ".");
-		Dialog.addMessage("Here is the input I want in order after you click OK:\n");
+		Dialog.addMessage("Here is the input I want, in order, after you click OK:\n");
 		if (numchan > 2) {
 			Dialog.addMessage("\t\t- The MATL folder that contains your Phase 1 OIR files.");
 			Dialog.addMessage("\t\t- The MATL folder that contains your Phase 2 OIR files.");
