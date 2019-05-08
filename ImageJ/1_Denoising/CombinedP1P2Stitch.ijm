@@ -174,7 +174,10 @@ if (!train || stitch) {
 					
 					run("16-bit");
 					resetMinAndMax();
+					getDimensions(width, height, channels, slices, frames);
+					run("Make Substack...", "channels=1-" + channels + " slices=1-" + slices-1);
 					saveAs("tiff", dirbig + "Stitched_" + substring(list[lastfile],0,lengthOf(list[lastfile])-10) + i+1);
+					close();
 					close();
 					deletedir(dirmax[i]);
 				}
