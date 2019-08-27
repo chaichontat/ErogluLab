@@ -9,7 +9,7 @@ import imagej
 import psutil
 from colorama import Fore
 
-ij_path = "C:\\Users\\Chaichontat\\Desktop\\Fiji.app"
+ij_path = "C:\\Users\\User\\Desktop\\Fiji.app"
 
 
 class ParallelIJ:
@@ -33,6 +33,7 @@ class ParallelIJ:
         self.out_suffix = out_suffix
 
         self.files = [f for f in incoming.iterdir() if f.suffix.lower() in ParallelIJ.TYPES]
+        self.proc_num = min([psutil.cpu_count(logical=False), len(self.files)])
         m = mp.Manager()
         self.q_in = m.Queue()
         self.q_out = m.Queue()
@@ -87,9 +88,8 @@ class ParallelIJ:
 
     def start(self):
         """ Starts the processing pool. """
-        proc_num = psutil.cpu_count(logical=False)
         pool = mp.Pool()
-        [pool.apply_async(func=self.ij_instance, args=(self.q_in, self.q_out,)) for _ in range(proc_num)]
+        [pool.apply_async(func=self.ij_instance, args=(self.q_in, self.q_out,)) for _ in range(self.proc_num)]
         pool.close()
 
 
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     t_start = time.time()
 
     print('Initializing ImageJ ...')
-    for i in range(psutil.cpu_count(logical=False)):
+    for i in range(parallel.proc_num):
         parallel.q_out.get()
 
     cursor = (c for c in cycle('|/-\\'))
