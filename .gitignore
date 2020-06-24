@@ -4,3 +4,5 @@ config.json
 events.out*
 *.tif
 .DS_Store
+*.oir
+*.pyc
