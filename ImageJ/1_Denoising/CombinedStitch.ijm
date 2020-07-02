@@ -37,7 +37,6 @@ if (!batch || train) { // Individual
 	dir1 = getDirectory("Choose P1");
 	list1 = getFileList(dir1);
 	
-	}
 	if (!train) {
 		checkTileConfig(dir1, true);
 	}
@@ -374,7 +373,7 @@ function checkTileConfig(dircheck, precheck) {
 	} else {
 		containsconf = false;
 		if (precheck) {
-			exit("TileConfiguration file not found in " + dircheck +" , run processMATL first.");
+			exit("TileConfiguration file not found in " + dircheck +" , run Denoise_1_processMATL.ipynb first.");
 		}
 	}
 	return containsconf;
