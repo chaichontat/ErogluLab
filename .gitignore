@@ -6,3 +6,5 @@ events.out*
 .DS_Store
 *.oir
 *.pyc
+
+csbdeep/.ipynb_checkpoints/
