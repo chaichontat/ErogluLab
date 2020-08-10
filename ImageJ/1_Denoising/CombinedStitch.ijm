@@ -37,7 +37,6 @@ if (!batch || train) { // Individual
 	dir1 = getDirectory("Choose P1");
 	list1 = getFileList(dir1);
 	
-	}
 	if (!train) {
 		checkTileConfig(dir1, true);
 	}
