@@ -373,7 +373,7 @@ function checkTileConfig(dircheck, precheck) {
 	} else {
 		containsconf = false;
 		if (precheck) {
-			exit("TileConfiguration file not found in " + dircheck +" , run processMATL first.");
+			exit("TileConfiguration file not found in " + dircheck +" , run Denoise_1_processMATL.ipynb first.");
 		}
 	}
 	return containsconf;
