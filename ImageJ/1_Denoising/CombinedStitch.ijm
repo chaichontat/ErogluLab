@@ -280,7 +280,7 @@ function processfolder() {
 		}
 	
 		for (i=0; i<list1.length; i++) {
-			if (endsWith(list1[i], ".oir") || endsWith(list1[i], ".tif") ) {
+			if ((endsWith(list1[i], ".oir") || endsWith(list1[i], ".tif")) && !startsWith(list1[i], "Map")) {
 				run("Bio-Formats Importer", "open=[" + dir1 + list1[i] + "] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 				
 				name = substring(list1[i], 0, lengthOf(list1[i])-4);
